@@ -1,0 +1,70 @@
+import { pool } from "../config/db";
+
+export const createUser = async (name: string, lastname: string, email: string, password: string, roleTableName: string) => {
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN"); 
+    
+    const userQuery = `
+      INSERT INTO users (name, lastname, email, password)
+      VALUES ($1, $2, $3, $4)
+      RETURNING user_id, name, lastname, email;
+    `;
+    const userResult = await client.query(userQuery, [name, lastname, email, password]);
+    const newUser = userResult.rows[0];
+
+    
+    const userRoleQuery = `
+      INSERT INTO ${roleTableName} (user_id)
+      VALUES ($1);
+    `;
+    await client.query(userRoleQuery, [newUser.user_id]);
+
+    await client.query("COMMIT"); 
+    
+    return { ...newUser, role: roleTableName };
+
+  } catch (error) {
+    await client.query("ROLLBACK"); 
+    throw error;
+  } finally {
+    client.release(); 
+  }
+};
+
+export const findUserByEmail = async (email: string) => {
+  const query = `
+    SELECT * FROM users 
+    WHERE email = $1;
+  `;
+  
+  const result = await pool.query(query, [email]);
+  
+  return result.rows[0] || null;
+};
+
+export const findUserByEmailWithRole = async (email:string) => {
+  const query = `
+    SELECT 
+      u.user_id, 
+      u.name, 
+      u.lastname, 
+      u.email, 
+      u.password,
+      CASE 
+        WHEN s.user_id IS NOT NULL THEN 'students'
+        WHEN st.user_id IS NOT NULL THEN 'staff'
+        WHEN r.user_id IS NOT NULL THEN 'referents'
+        ELSE 'none'
+      END as role
+    FROM users u
+    LEFT JOIN students s ON u.user_id = s.user_id
+    LEFT JOIN staff st ON u.user_id = st.user_id
+    LEFT JOIN referents r ON u.user_id = r.user_id
+    WHERE u.email = $1;
+  `;
+
+  const result = await pool.query(query, [email]);
+  return result.rows[0] || null;
+}
