@@ -1,4 +1,4 @@
-import { ZodSchema, ZodError } from "zod"; // <-- Importa ZodError
+import { ZodSchema, ZodError } from "zod"; 
 import { Request, Response, NextFunction } from "express";
 
 export const validate =

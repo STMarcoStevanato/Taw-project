@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import * as userService from "../services/user.service";
-import { CreateUserDTO } from "../schemas/user.schema";
-import { LoginDTO } from "../schemas/auth.schema";
+import { CreateUserDTO } from "../schemas/user/user.schema";
+import { LoginDTO } from "../schemas/auth/auth.schema";
 import crypto from "crypto";
 
 export const createUser = async (
@@ -75,6 +75,21 @@ export const logout = async (req: Request, res: Response, next: NextFunction) =>
       message: "Logged out successfully" 
     });
     
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getReferents = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const referents = await userService.getReferents();
+    
+    return res.status(200).json({
+      status: "success",
+      results: referents.length,
+      data: { referents }
+    });
+
   } catch (err) {
     next(err);
   }

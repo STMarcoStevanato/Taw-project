@@ -70,3 +70,8 @@ export const login = async (email: string, password: string): Promise<LoginRespo
     token
   };
 }
+
+
+export const getReferents = async (): Promise<UserWithRole[]> => {
+  return await userRepository.getReferents();
+};

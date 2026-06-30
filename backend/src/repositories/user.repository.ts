@@ -1,4 +1,5 @@
 import { pool } from "../config/db";
+import { UserWithRole } from "../types/user";
 
 export const createUser = async (name: string, lastname: string, email: string, password: string, roleTableName: string) => {
   const client = await pool.connect();
@@ -68,3 +69,19 @@ export const findUserByEmailWithRole = async (email:string) => {
   const result = await pool.query(query, [email]);
   return result.rows[0] || null;
 }
+
+export const getReferents = async (): Promise<UserWithRole[]> => {
+  const query = `
+      SELECT 
+      r.user_id,
+      u.name,
+      u.lastname,
+      u.email
+    FROM public.referents r
+    INNER JOIN public.users u ON r.user_id = u.user_id
+    ORDER BY u.lastname ASC, u.name ASC;
+  `;
+
+  const result = await pool.query(query);
+  return result.rows;
+};
