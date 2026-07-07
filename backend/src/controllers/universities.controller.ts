@@ -8,7 +8,13 @@ export const getAllUniversities = async (
 ) => {
   try {
     const universities = await universityService.getAllUniversities();
-    res.status(200).json(universities);
+
+     return res.status(200).json({
+      status: "success",
+      results: universities.length,
+      data: { universities }
+    });
+
   } catch (err) {
     next(err);
   }
