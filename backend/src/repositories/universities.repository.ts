@@ -32,8 +32,8 @@ export const getUniversityCourses = async (university_id: number): Promise<Cours
     SELECT c.course_id, uc.course_code, c.course_name, uc.credits
     FROM university_courses uc
     JOIN courses_list c ON uc.course_id = c.course_id
-    WHERE uc.university_id = 
-  ` + university_id;
+    WHERE uc.university_id = $1
+  `;
   
   const result = await pool.query(query);
 
@@ -43,4 +43,32 @@ export const getUniversityCourses = async (university_id: number): Promise<Cours
     name: row.course_name,
     credits: row.course_credits
   }));
+}
+
+export const getValidCourseIds = async (courseIds: number[], university_id: number): Promise<number[]> => {
+  if (courseIds.length === 0) return [];
+  const query = `
+    SELECT uc.course_id
+    FROM university_courses uc
+    WHERE uc.university_id = $2
+      AND uc.course_id = ANY($1::bigint[]);
+  `;
+
+  const result = await pool.query(query, [courseIds, university_id]);
+
+  // Returns an array containing only the IDs found, e.g., [642, 643]
+  return result.rows.map((row) => Number(row.course_id));
+};
+
+export const findUniversityById = async (university_id: number): Promise<boolean> => {
+  const query = `
+    SELECT EXISTS (
+      SELECT 1 
+      FROM public.universities 
+      WHERE university_id = $1
+    );
+  `;
+
+  const result = await pool.query(query, [university_id]);
+  return result.rows[0].exists;
 }

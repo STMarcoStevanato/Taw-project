@@ -85,3 +85,29 @@ export const getReferents = async (): Promise<UserWithRole[]> => {
   const result = await pool.query(query);
   return result.rows;
 };
+
+export const findStudentById = async (studentId: number): Promise<boolean> => {
+  const query = `
+    SELECT EXISTS (
+      SELECT 1 
+      FROM public.students 
+      WHERE user_id = $1
+    );
+  `;
+
+  const result = await pool.query(query, [studentId]);
+  return result.rows[0].exists;
+};
+
+export const findReferentById = async (referentId: number): Promise<boolean> => {
+  const query = `
+    SELECT EXISTS (
+      SELECT 1 
+      FROM public.referents 
+      WHERE user_id = $1
+    );
+  `;
+
+  const result = await pool.query(query, [referentId]);
+  return result.rows[0].exists;
+};

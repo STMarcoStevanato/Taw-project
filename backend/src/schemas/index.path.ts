@@ -7,3 +7,8 @@ import "./auth/auth.path";
 import "./university/university.path";
 
 import "./referent/referent.path";
+
+import "./student/student.path";
+
+import "./application/application.schema";
+import "./application/application.path";
