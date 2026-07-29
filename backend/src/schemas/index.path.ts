@@ -12,3 +12,5 @@ import "./student/student.path";
 
 import "./application/application.schema";
 import "./application/application.path";
+
+import "./document/document.schema";

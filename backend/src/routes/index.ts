@@ -5,6 +5,7 @@ import universityRoutes from "./universities.route";
 import authRoutes from "./isAuth";
 import studentRoutes from "./students.route";
 import applicationRoutes from "./applications.route";
+import versionRoutes from "./versions.route";
 
 const router = Router();
 
@@ -14,6 +15,7 @@ router.use("/universities", universityRoutes);
 router.use("/auth", authRoutes);
 router.use("/students", studentRoutes);
 router.use("/applications", applicationRoutes);
+router.use("/versions", versionRoutes);
 
 
 

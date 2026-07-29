@@ -39,12 +39,12 @@ export const createFullApplication = async (
     const newApplication = applicationResult.rows[0];
     const applicationId = newApplication.application_id;
 
-    // 2. insert of version 1 (is_active = true)
+    // 2. insert of version 1 (is_active = false)
     const versionQuery = `
       INSERT INTO application_versions (application_id, version_number, is_active)
       VALUES ($1, $2, $3);
     `;
-    await client.query(versionQuery, [applicationId, 1, true]);
+    await client.query(versionQuery, [applicationId, 1, false]);
 
     // 3. insert of starting transition 1
     const transitionQuery = `
