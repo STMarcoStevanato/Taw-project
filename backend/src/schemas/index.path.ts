@@ -14,3 +14,4 @@ import "./application/application.schema";
 import "./application/application.path";
 
 import "./document/document.schema";
+import "./document/document.path";

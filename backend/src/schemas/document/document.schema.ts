@@ -52,3 +52,33 @@ export const uploadDocumentSchema = z.object({
 
 export type UploadParamsDTO = z.infer<typeof UploadParamsSchema>;
 export type PdfFileDTO = z.infer<typeof PdfFileSchema>;
+
+
+export const GetDocumentParamsSchema = registry.register(
+  "GetDocumentParams",
+  z.object({
+    versionId: z.coerce
+      .number({ message: "The version ID must be a number." })
+      .int()
+      .positive({ message: "The version ID must be a positive integer." })
+      .openapi({ example: 4 }),
+    documentId: z.coerce
+      .number({ message: "The document ID must be a number." })
+      .int()
+      .positive({ message: "The document ID must be a positive integer." })
+      .openapi({ example: 6 }),
+  })
+);
+
+export const GetDocumentQuerySchema = registry.register(
+  "GetDocumentQuery",
+  z.object({
+    download: z
+      .enum(["true", "false"])
+      .optional()
+      .openapi({
+        example: "true",
+        description: "If set to 'true', forces file download instead of inline preview.",
+      }),
+  })
+);

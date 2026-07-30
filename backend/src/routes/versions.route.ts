@@ -6,18 +6,28 @@ import { hasRole } from  "../middleware/roleHandler";
 import { createPdfUploader }  from "../middleware/uploadMiddleware";
 import { handleMulterError } from "../middleware/uploadErrorHandler";
 import * as validationControllers from "../controllers/versions.controller"
+import { is } from "zod/v4/locales";
 
 const router = Router();
 
 router.post(
     "/:versionId/learning-agreement",
-     /*isAuth, hasRole(["students"]*),*/
+     isAuth,
+     hasRole(["students"]),
      createPdfUploader({
-        fieldName: 'learning_agreement',
+        fieldName: 'LEARNING_AGREEMENT',
         folderName: 'learning_agreements'
       }),
      handleMulterError,
      validate(uploadDocumentSchema),
-     validationControllers.uploadLearningAgreement); 
+     validationControllers.uploadLearningAgreement
+    ); 
+
+router.get(
+    "/:versionId/documents/:documentId",
+    isAuth,
+    hasRole(["students", "referents", "staff"]),
+    validationControllers.getDocumentById
+  );
 
 export default router;
