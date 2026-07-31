@@ -119,3 +119,29 @@ export type ApplicationBody = z.infer<typeof applicationBodySchema>;
 export type CourseMappingsInput = ApplicationBody["mappings"];
 export type CourseMappingItem = ApplicationBody["mappings"][number];
 
+
+export const referentApprovalSchema = registry.register(
+  "ReferentApprovalRequest",
+  z
+    .object({
+      applicationId: z.coerce.number().int().positive().openapi({ example: 1 }),
+      approved: z.boolean().openapi({ example: false }),
+      reason: z.string().nullable().optional().openapi({
+        example: "The selected exams are not the same as those offered by Ca' Foscari",
+      }),
+    })
+    .refine(
+      (data) => {
+        if (!data.approved) {
+          return typeof data.reason === "string" && data.reason.trim().length > 0;
+        }
+        return true;
+      },
+      {
+        message: "The (reason) parameter is required when (approved) is false",
+        path: ["reason"],
+      }
+    )
+);
+
+export type ReferentApprovalRequest = z.infer<typeof referentApprovalSchema>;

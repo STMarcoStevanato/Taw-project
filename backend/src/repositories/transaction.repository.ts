@@ -1,5 +1,5 @@
 import { pool } from "../config/db";
-import { Transaction } from "../types/transactions";
+import { Transaction, State } from "../types/transactions";
 
 export const getTransactionByIdApplicationIdAndStates = async (applicationId: number, fromState: number|null, toState:number): Promise<Transaction> => {
     const query = `
@@ -11,4 +11,13 @@ export const getTransactionByIdApplicationIdAndStates = async (applicationId: nu
 
     const result =  await pool.query(query, [applicationId,fromState,toState]);
     return result.rows[0] || null;
+}
+
+export const getState = async (): Promise<State[]> => {
+    const query = `
+    SELECT state_id, name FROM application_states;
+    `;
+
+    const result =  await pool.query(query);
+    return result.rows;
 }

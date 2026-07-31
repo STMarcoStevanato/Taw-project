@@ -6,4 +6,8 @@ export interface Transaction {
     to_state_id: number;
     performed_by: number;
   }
-  
+
+export interface State {
+  state_id: number;
+  name: string;
+}

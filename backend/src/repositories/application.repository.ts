@@ -111,3 +111,66 @@ export const createFullApplication = async (
     client.release();
   }
 };
+
+export const getApplicationById = async (application_id: number) => {
+  const query = `
+    SELECT * FROM applications WHERE application_id = $1;
+  `;
+  const result = await pool.query(query, [application_id]);
+  return result.rows[0];
+};
+
+export const postReferentApproval = async (
+  application_id: number,
+  referent_id: number,
+  is_approved: boolean,
+  reason: string | null,
+  current_state_id: number,
+  new_state_id: number
+) => {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    const updateApplicationQuery = `
+      UPDATE application_versions
+      SET is_active = false
+      WHERE application_id = $1;
+    `;
+    await client.query(updateApplicationQuery, [is_approved]);
+
+    const insertTransitionQuery = `
+      INSERT INTO application_state_transitions (
+        application_id,
+        from_state_id,
+        to_state_id,
+        performed_by,
+        reason
+      )
+      VALUES ($1, $2, $3, $4, $5);
+    `;
+    await client.query(insertTransitionQuery, [
+      application_id,
+      current_state_id,
+      new_state_id,
+      referent_id,
+      reason
+    ]);
+
+    await client.query("COMMIT");
+    return {
+      application_id,
+      referent_id,
+      is_approved,
+      reason,
+      new_state_id
+    };
+
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+  
+}

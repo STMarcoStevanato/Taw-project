@@ -3,6 +3,7 @@ import { findStudentById } from "../repositories/user.repository";
 import { findReferentById } from "../repositories/user.repository";
 import { getValidCourseIds }from "../repositories/universities.repository"
 import { findUniversityById } from "../repositories/universities.repository";
+import { STATES } from "../config/STATE";
 import * as applicationRepository from "../repositories/application.repository";
 
 export const createApplication = async (
@@ -79,3 +80,47 @@ export const createApplication = async (
     
       return newApplication;
 };
+
+export const referentApproval = async (
+    application_id: number,
+    referent_id: number,
+    is_approved: boolean,
+    reason: string | null
+) => {
+    const application = await applicationRepository.getApplicationById(application_id);
+    if (!application) {
+        const error = new Error(`Application with ID ${application_id} does not exist`) as any;
+        error.statusCode = 404;
+        throw error;
+    }
+
+    if (Number(application.referent_id) !== Number(referent_id)) {
+        const error = new Error(`Referent with ID ${referent_id} is not authorized to approve this application`) as any;
+        error.statusCode = 403;
+        throw error;
+    }
+
+    if (reason === null && !is_approved) {
+        const error = new Error("A reason must be provided when rejecting an application") as any;
+        error.statusCode = 400;
+        throw error;
+    }
+
+    if (reason === null && is_approved) {
+        reason = "Approval request accepted";
+    }
+
+    const currentState = application.state_id;
+    let transactionNewState = undefined;
+    if (is_approved) transactionNewState = STATES.AWAITING_LEARNING_AGREEMENT_BY_STAFF;
+    else transactionNewState = STATES.REJECTED_BY_REFERENT;
+
+    return await applicationRepository.postReferentApproval(
+        application_id,
+        referent_id,
+        is_approved,
+        reason,
+        currentState,
+        transactionNewState
+    );
+}
