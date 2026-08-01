@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import * as applicationService from "../services/application.service";
+import { ApproveRequestSchema } from "../schemas/application/application.schema";
 
 export const createApplication = async (
     req: Request,
@@ -34,14 +35,47 @@ export const referentApproval = async (
   ) => {
     try {
         const userId = (req as any).user.user_id;
-        const applicationId = Number(req.params.id);
-        const { approved, reason } = req.body;
+        const { params, body } = ApproveRequestSchema.parse({
+          params: req.params,
+          body: req.body,
+        });
+        
 
         const result = await applicationService.referentApproval(
+            params.applicationId,
+            params.versionId,
+            userId,
+            body.approved,
+            body.reason ?? null
+        );
+
+        return res.status(200).json({
+            status: "success",
+            data: result,
+        });
+
+    } catch (err) {
+      next(err);
+    }
+};
+
+export const editApplication = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+        const userId = (req as any).user.user_id;
+        const applicationId = Number(req.params.applicationId); 
+        const body = req.body;
+
+        const result = await applicationService.editApplication(
             applicationId,
             userId,
-            approved,
-            reason
+            body.host_institution_id,
+            body.academic_year,
+            body.expected_mobility_period,
+            body.mappings
         );
 
         return res.status(200).json({

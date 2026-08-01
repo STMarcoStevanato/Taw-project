@@ -2,7 +2,7 @@ import path from "path";
 import fs from "fs";
 import { getApplicationVersionById } from "../repositories/version.repository";
 import { getTransactionByIdApplicationIdAndStates } from "../repositories/transaction.repository";
-import { insertLearningAgreement } from "../repositories/documents.repository";
+import { insertLearningAgreement, getDocumentByVersionAndType } from "../repositories/documents.repository";
 import { getDocumentByDocumentId  } from "../repositories/documents.repository";
 
 export const UploadLearningAgreement = async (
@@ -17,8 +17,8 @@ export const UploadLearningAgreement = async (
             error.statusCode = 404;
             throw error;
         }
-
-        if (infoApplicationVersion?.version_number !== 1) {
+        const document = await getDocumentByVersionAndType(version_id, "LEARNING_AGREEMENT");
+        if (document !== null) {
             const error = new Error("The Learning Agreement has already been uploaded. ") as any;
             error.statusCode = 400;
             throw error;

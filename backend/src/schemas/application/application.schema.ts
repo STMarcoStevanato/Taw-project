@@ -124,7 +124,6 @@ export const referentApprovalSchema = registry.register(
   "ReferentApprovalRequest",
   z
     .object({
-      applicationId: z.coerce.number().int().positive().openapi({ example: 1 }),
       approved: z.boolean().openapi({ example: false }),
       reason: z.string().nullable().optional().openapi({
         example: "The selected exams are not the same as those offered by Ca' Foscari",
@@ -144,4 +143,60 @@ export const referentApprovalSchema = registry.register(
     )
 );
 
+export const UploadParamsSchema = registry.register(
+  "UploadParams",
+  z.object({
+    applicationId: z.coerce
+      .number({
+        message: "The application ID must be a number."
+      })
+      .int({ message: "The application ID must be an integer." })
+      .positive({ message: "The application ID must be a positive number." })
+      .openapi({ example: 4 }),
+      versionId: z.coerce
+      .number({
+        message: "The version ID must be a number."
+      })
+      .int({ message: "The version ID must be an integer." })
+      .positive({ message: "The version ID must be a positive number." })
+      .openapi({ example: 4 }),
+  })
+);
+
+export const ApproveRequestSchema = registry.register(
+  "ApproveRequest",
+  z.object({
+    params: UploadParamsSchema,
+    body: referentApprovalSchema,
+  })
+);
+
+export type ApproveRequest = z.infer<typeof ApproveRequestSchema>;
 export type ReferentApprovalRequest = z.infer<typeof referentApprovalSchema>;
+
+
+export const applicationParamsSchema = z.object({
+  applicationId: z
+    .string()
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().int().positive({ message: "Invalid application ID format." }))
+    .openapi({ example: 123 }),
+});
+
+export const updateApplicationBodySchema = registry.register(
+  "UpdateApplicationRequest",
+  z.object({
+    host_institution_id: applicationBodySchema.shape.host_institution_id,
+    academic_year: applicationBodySchema.shape.academic_year,
+    expected_mobility_period: applicationBodySchema.shape.expected_mobility_period,
+    mappings: applicationBodySchema.shape.mappings,
+  })
+);
+
+export const updateApplicationSchema = z.object({
+  params: applicationParamsSchema,
+  body: updateApplicationBodySchema,
+});
+
+export type ApplicationParams = z.infer<typeof applicationParamsSchema>;
+export type UpdateApplicationBody = z.infer<typeof updateApplicationBodySchema>;

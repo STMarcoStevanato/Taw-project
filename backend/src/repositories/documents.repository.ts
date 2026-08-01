@@ -97,3 +97,16 @@ export const getDocumentByDocumentId = async (
     return result.rows[0] || null;
 };
 
+export const getDocumentByVersionAndType = async (
+    version_id: number,
+    document_type: string
+) => {
+    const query = `
+        SELECT *
+        FROM documents
+        WHERE version_id = $1 AND document_type = $2
+    `;
+    const result = await pool.query(query, [version_id, document_type]);
+    return result.rows[0] || null;
+};
+
