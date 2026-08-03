@@ -1,6 +1,163 @@
 import { registry, z } from "../../config/openapi";
 import { applicationBodySchema , UploadParamsSchema, referentApprovalSchema, updateApplicationSchema, updateApplicationBodySchema } from "./application.schema";
 
+// GET REGISTRY
+registry.registerPath({
+  method: "get",
+  path: "/applications",
+  summary: "Retrieve all study abroad applications",
+  description: "Fetches a list of all study abroad applications in the system.",
+  tags: ["Applications"],
+  responses: {
+    200: {
+      description: "Applications retrieved successfully",
+      content: {
+        "application/json": {
+          schema: z.object({
+            status: z.string().openapi({ example: "success" }),
+            results: z.number().openapi({ example: 2 }),
+            data: z.object({
+              applications: z.array(
+                z.object({
+                  application_id: z.number().openapi({ example: 1 }),
+                  student_id: z.number().openapi({ example: 20 }),
+                  referent_id: z.number().openapi({ example: 17 }),
+                  host_institution_id: z.number().openapi({ example: 3 }),
+                  academic_year: z.string().openapi({ example: "2025/26" }),
+                  expected_mobility_period: z
+                    .enum(["first_semester", "second_semester", "full_year"])
+                    .openapi({ example: "first_semester" }),
+                  created_at: z.string().datetime().openapi({ example: "2026-07-28T10:00:00Z" }),
+                })
+              ),
+            }),
+          }),
+        },
+      },
+    },
+    500: {
+      description: "Internal server error.",
+      content: {
+        "application/json": {
+          schema: z.object({
+            message: z.string().openapi({ example: "Internal server error" }),
+          }),
+        },
+      },
+    },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/applications/student/{studentId}",
+  summary: "Retrieve applications for a specific student",
+  description: "Fetches a list of all study abroad applications associated with a specific student.",
+  tags: ["Applications"],
+  responses: {
+    200: {
+      description: "Applications retrieved successfully",
+      content: {
+        "application/json": {
+          schema: z.object({
+            status: z.string().openapi({ example: "success" }),
+            results: z.number().openapi({ example: 2 }),
+            data: z.object({
+              applications: z.array(
+                z.object({
+                  application_id: z.number().openapi({ example: 1 }),
+                  student_id: z.number().openapi({ example: 20 }),
+                  referent_id: z.number().openapi({ example: 17 }),
+                  host_institution_id: z.number().openapi({ example: 3 }),
+                  academic_year: z.string().openapi({ example: "2025/26" }),
+                  expected_mobility_period: z
+                    .enum(["first_semester", "second_semester", "full_year"])
+                    .openapi({ example: "first_semester" }),
+                  created_at: z.string().datetime().openapi({ example: "2026-07-28T10:00:00Z" }),
+                })
+              ),
+            }),
+          }),
+        },
+      },
+    },
+    404: {
+      description: "Student not found.",
+      content: {
+        "application/json": {
+          schema: z.object({
+            message: z.string().openapi({ example: "Student with ID 20 does not exist." }),
+          }),
+        },
+      },
+    },
+    500: {
+      description: "Internal server error.",
+      content: {
+        "application/json": {
+          schema: z.object({
+            message: z.string().openapi({ example: "Internal server error" }),
+          }),
+        },
+      },
+    },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/applications/referent/{referentId}",
+  summary: "Retrieve applications for a specific referent",
+  description: "Fetches a list of all study abroad applications associated with a specific academic referent.",
+  tags: ["Applications"],
+  responses: {
+    200: {
+      description: "Applications retrieved successfully",
+      content: {
+        "application/json": {
+          schema: z.object({
+            status: z.string().openapi({ example: "success" }),
+            results: z.number().openapi({ example: 2 }),
+            data: z.object({
+              applications: z.array(
+                z.object({
+                  application_id: z.number().openapi({ example: 1 }),
+                  student_id: z.number().openapi({ example: 20 }),
+                  referent_id: z.number().openapi({ example: 17 }),
+                  host_institution_id: z.number().openapi({ example: 3 }),
+                  academic_year: z.string().openapi({ example: "2025/26" }),  
+                })
+              ),
+            }),
+          }),
+        },
+      },
+    },
+    404: {
+      description: "Referent not found.",
+      content: {
+        "application/json": {
+          schema: z.object({
+            message: z.string().openapi({ example: "Referent with ID 17 does not exist." }),
+          }),
+        },
+      },
+    },
+    500: {
+      description: "Internal server error.",
+      content: {
+        "application/json": {
+          schema: z.object({
+            message: z.string().openapi({ example: "Internal server error" }),
+          }),
+        },
+      },
+    },
+  },
+});
+
+
+// POST REGISTRY
 registry.registerPath({
   method: "post",
   path: "/applications",

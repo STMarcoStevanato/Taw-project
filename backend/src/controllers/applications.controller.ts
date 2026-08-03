@@ -2,6 +2,81 @@ import { Request, Response, NextFunction } from "express";
 import * as applicationService from "../services/application.service";
 import { ApproveRequestSchema } from "../schemas/application/application.schema";
 
+export const getAllApplications = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    try{
+        const applications = await applicationService.getAllApplications();
+
+        return res.status(200).json({
+            status: "success",
+            results: applications.length,
+            data: {applications}
+        });
+    }catch (err){
+        next(err);
+    }
+};
+
+export const getStudentApplications = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const studentId = Number(req.params.studentId);
+        const applications = await applicationService.getStudentApplications(studentId);
+
+        return res.status(200).json({
+            status: "success",
+            results: applications.length,
+            data: { applications }
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const getReferentApplications = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const referentId = Number(req.params.referentId);
+        const applications = await applicationService.getReferentApplications(referentId);
+
+        return res.status(200).json({
+            status: "success",
+            results: applications.length,
+            data: { applications }
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const getTransitionApplications = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const transitionId = Number(req.params.transitionId);
+        const applications = await applicationService.getTransitionApplications(transitionId);
+
+        return res.status(200).json({
+            status: "success",
+            results: applications.length,
+            data: { applications }
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
 export const createApplication = async (
     req: Request,
     res: Response,

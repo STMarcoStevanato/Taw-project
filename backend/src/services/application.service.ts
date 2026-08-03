@@ -7,6 +7,23 @@ import { getDocumentByVersionAndType } from "../repositories/documents.repositor
 import { getApplicationVersionById, getPassedExamsForActiveVersion } from "../repositories/version.repository"
 import { STATES } from "../config/STATE";
 import * as applicationRepository from "../repositories/application.repository";
+import { Application } from "../types/applications";
+
+export const getAllApplications = async (): Promise<Application[]> => {
+    return applicationRepository.getAllApplications();
+}
+
+export const getStudentApplications = async (studentId: number): Promise<Application[]> => {
+    return applicationRepository.getStudentApplications(studentId);
+}
+
+export const getReferentApplications = async (referentId: number): Promise<Application[]> => {
+    return applicationRepository.getReferentApplications(referentId);
+}
+
+export const getTransitionApplications = async (transitionId: number): Promise<Application[]> => {
+    return applicationRepository.getTransitionApplications(transitionId);
+}
 
 const validateCoursesAndHostInstitution = async (
   host_institution_id: number,

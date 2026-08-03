@@ -1,11 +1,17 @@
 import { Router } from "express";
 import { createApplication, referentApproval, editApplication, staffApproval } from "../controllers/applications.controller";
+import { getAllApplications, getStudentApplications, getReferentApplications, getTransitionApplications } from "../controllers/applications.controller"
 import { applicationSchema, ApproveRequestSchema, updateApplicationSchema } from "../schemas/application/application.schema";
 import { validate } from "../middleware/validate";
 import { isAuth } from "../middleware/authHandler";
 import { hasRole } from  "../middleware/roleHandler";
 
 const router = Router();
+
+router.get("/", getAllApplications);
+router.get("/student/:studentId", getStudentApplications);
+router.get("/referent/:referentId", getReferentApplications);
+router.get("/transition/:transitionId", getTransitionApplications);
 
 router.post("/", isAuth, hasRole(["students"]), validate(applicationSchema), createApplication);
 router.put("/:applicationId", isAuth, hasRole(["students"]), validate(updateApplicationSchema), editApplication);
