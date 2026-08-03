@@ -136,12 +136,38 @@ export const postReferentApproval = async (
   try {
     await client.query("BEGIN");
 
-    const updateApplicationQuery = `
-      UPDATE application_versions
-      SET is_active = false
-      WHERE application_id = $1 AND version_id = $2;
+    if (is_approved) {
+      // 1 Deactivate all current versions of the application
+      const deactivateOldVersionsQuery = `
+        UPDATE application_versions
+        SET is_active = false
+        WHERE application_id = $1;
+      `;
+      await client.query(deactivateOldVersionsQuery, [application_id]);
+
+      // 2 Activate the specific approved version (version_id)
+      const activateNewVersionQuery = `
+        UPDATE application_versions
+        SET is_active = true
+        WHERE version_id = $1 AND application_id = $2;
+      `;
+      await client.query(activateNewVersionQuery, [version_id, application_id]);
+
+    } else {
+      // 1. in case of rejection, delete the rejected version from the database
+      const deleteRejectedVersionQuery = `
+        DELETE FROM application_versions
+        WHERE version_id = $1 AND application_id = $2;
+      `;
+      await client.query(deleteRejectedVersionQuery, [version_id, application_id]);
+    }
+
+    const updateApplicationStateQuery = `
+      UPDATE applications
+      SET current_state_id = $1
+      WHERE application_id = $2;
     `;
-    await client.query(updateApplicationQuery, [application_id, version_id]);
+    await client.query(updateApplicationStateQuery, [new_state_id, application_id]);
 
     const insertTransitionQuery = `
       INSERT INTO application_state_transitions (
@@ -158,7 +184,7 @@ export const postReferentApproval = async (
       current_state_id,
       new_state_id,
       referent_id,
-      reason
+      reason 
     ]);
 
     await client.query("COMMIT");
@@ -301,3 +327,54 @@ export const updateApplication = async (
     client.release();
   }
 }
+
+export const postStaffApproval = async (
+  application_id: number,
+  from_state_id: number,
+  to_state_id: number,
+  staff_id: number,
+  reason: string
+) => {
+  const client = await pool.connect();
+  try {
+
+    await client.query("BEGIN");
+
+    const updateApplicationStateQuery = `
+      INSERT INTO application_state_transitions (
+        application_id, 
+        from_state_id, 
+        to_state_id, 
+        performed_by, 
+        reason
+      )
+      VALUES ($1, $2, $3, $4, $5);
+    `;
+
+    await client.query(updateApplicationStateQuery, [
+      application_id,
+      from_state_id,
+      to_state_id,
+      staff_id,
+      reason
+    ]);
+
+    await client.query("COMMIT");
+
+    return {
+      application_id,
+      from_state_id,
+      to_state_id,
+      staff_id,
+      reason
+    };
+
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+};
+
+

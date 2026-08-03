@@ -242,3 +242,56 @@ export const editApplication = async (
 
   return updatedApplication;
 };
+
+export const staffApproval = async (
+    application_id: number,
+    version_id: number,
+    user_id: number,
+) => {
+    const application = await applicationRepository.getApplicationById(application_id);
+    if (!application) {
+        const error = new Error(`Application with ID ${application_id} does not exist`) as any;
+        error.statusCode = 404;
+        throw error;
+    }
+
+    if (Number(application.current_state_id) !== STATES.AWAITING_LEARNING_AGREEMENT_APPROVAL_BY_STAFF) {
+        const error = new Error('Application is not in a valid state for staff approval') as any;
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const version = await getApplicationVersionById(version_id);
+
+    if (!version) {
+        const error = new Error(`Version with ID ${version_id} does not exist`) as any;
+        error.statusCode = 404;
+        throw error; 
+    }
+
+    if (Number(version.application_id) !== application_id) {
+        const error = new Error(`Version with ID ${version_id} does not belong to application ${application_id}`) as any;
+        error.statusCode = 404;
+        throw error; 
+    }
+
+    if (version.is_active !== true) {
+        const error = new Error(`Version with ID ${version_id} has not been approved by the referent yet`) as any;
+        error.statusCode = 400;
+        throw error; 
+    }
+
+    const currentState = application.current_state_id;
+    const newState = STATES.PRE_DEPARTURE_COMPLETED;
+    const reason = "Learning Agreement approved by staff";
+
+    const staffApprovalResult = await applicationRepository.postStaffApproval(
+        application_id,
+        currentState,
+        newState,
+        user_id,
+        reason
+    );
+
+    return staffApprovalResult;
+};

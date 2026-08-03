@@ -9,7 +9,9 @@ export const insertLearningAgreement = async (
     mime_type: string,
     file_size: number,
     application_id: number,
-    user_id: number
+    user_id: number,
+    currentState: number,
+    newState: number
     
 ) => {
     const client = await pool.connect();
@@ -54,15 +56,17 @@ export const insertLearningAgreement = async (
                 reason
             ) VALUES (
                 $1,
-                1,
-                2,
                 $2,
+                $3,
+                $4,
                 'Learning Agreement uploaded'
             )
         `;
 
         await client.query(insertQueryTransaction, [
             application_id,
+            currentState,
+            newState,
             user_id,
         ]);
 

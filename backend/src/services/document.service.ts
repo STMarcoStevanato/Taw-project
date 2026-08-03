@@ -4,6 +4,8 @@ import { getApplicationVersionById } from "../repositories/version.repository";
 import { getTransactionByIdApplicationIdAndStates } from "../repositories/transaction.repository";
 import { insertLearningAgreement, getDocumentByVersionAndType } from "../repositories/documents.repository";
 import { getDocumentByDocumentId  } from "../repositories/documents.repository";
+import { getApplicationById } from "../repositories/application.repository";
+import { STATES } from "../config/STATE";   
 
 export const UploadLearningAgreement = async (
      version_id: number,
@@ -24,18 +26,25 @@ export const UploadLearningAgreement = async (
             throw error;
         }
 
-        const infoTransaction = await getTransactionByIdApplicationIdAndStates
-        (
-            infoApplicationVersion.application_id,
-            null, // from_state_id 
-            1,    // to_state_id -> 1 is created
-        );
-
-        if (infoTransaction === null) {
-            const error = new Error("The user wants to upload the file. But there is a conflict with the application's transactions.") as any;
-            error.statusCode = 409;
+        const application = await getApplicationById(infoApplicationVersion.application_id);
+        if (application === null) {
+            const error = new Error("Application not found") as any;
+            error.statusCode = 404;
             throw error;
         }
+
+        if (!(
+            Number(application.current_state_id) === STATES.AWAITING_LEARNING_AGREEMENT_APPROVAL_BY_REFERENT ||
+            Number(application.current_state_id) === STATES.AWAITING_CHANGES_APPROVAL
+            )
+        ) { 
+            const error = new Error("The application is not in the correct state for uploading the Learning Agreement.") as any;
+            error.statusCode = 409;
+            throw error;  
+        }
+
+        const currentState = application.current_state_id;
+        const newState = STATES.AWAITING_LEARNING_AGREEMENT_APPROVAL_BY_REFERENT;
 
         const relativeFilePath = `learning_agreements/${file.filename}`;
 
@@ -48,6 +57,8 @@ export const UploadLearningAgreement = async (
             file.size,
             infoApplicationVersion.application_id,
             user_id,
+            currentState,
+            newState
         );
 
         return newLearningAgreement;

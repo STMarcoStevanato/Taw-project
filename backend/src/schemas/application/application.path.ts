@@ -271,3 +271,89 @@ registry.registerPath({
       },
     },
 });
+
+registry.registerPath({
+  method: "post",
+  path: "/applications/{applicationId}/version/{versionId}/staff-approval",
+  summary: "Approval of the application version by the staff",
+  description:
+    "Allows a staff member to approve an active version of the Learning Agreement and transition the application state to PRE_DEPARTURE_COMPLETED.",
+  tags: ["Applications"],
+  security: [
+    {
+      XSRFToken: [],
+    },
+  ],
+  request: {
+    params: UploadParamsSchema,
+  },
+  responses: {
+    200: {
+      description: "Staff approval recorded successfully",
+      content: {
+        "application/json": {
+          schema: z.object({
+            status: z.string().openapi({ example: "success" }),
+            data: z.object({
+              application_id: z.number().openapi({ example: 105 }),
+              from_state_id: z.number().openapi({
+                example: 3,
+                description: "State before transition (AWAITING_LEARNING_AGREEMENT_APPROVAL_BY_STAFF)",
+              }),
+              to_state_id: z.number().openapi({
+                example: 4,
+                description: "New state after transition (PRE_DEPARTURE_COMPLETED)",
+              }),
+              staff_id: z.number().openapi({ example: 42 }),
+              reason: z.string().openapi({
+                example: "Learning Agreement approved by staff",
+              }),
+            }),
+          }),
+        },
+      },
+    },
+    400: {
+      description: "Bad Request - Invalid application state or version not yet approved by referent",
+      content: {
+        "application/json": {
+          schema: z.object({
+            status: z.string().openapi({ example: "error" }),
+            statusCode: z.number().openapi({ example: 400 }),
+            message: z.string().openapi({
+              example: "Application is not in a valid state for staff approval",
+            }),
+          }),
+        },
+      },
+    },
+    403: {
+      description: "Forbidden - The user does not have the staff role",
+      content: {
+        "application/json": {
+          schema: z.object({
+            status: z.string().openapi({ example: "error" }),
+            statusCode: z.number().openapi({ example: 403 }),
+            message: z.string().openapi({
+              example: "User is not authorized to perform staff approvals",
+            }),
+          }),
+        },
+      },
+    },
+    404: {
+      description: "Not Found - Application or Version not found, or version does not belong to application",
+      content: {
+        "application/json": {
+          schema: z.object({
+            status: z.string().openapi({ example: "error" }),
+            statusCode: z.number().openapi({ example: 404 }),
+            message: z.string().openapi({
+              example: "Application with ID 105 does not exist",
+            }),
+          }),
+        },
+      },
+    },
+  },
+});

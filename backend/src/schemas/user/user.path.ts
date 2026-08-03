@@ -6,7 +6,7 @@ registry.registerPath({
   method: "post",
   path: "/users",
   summary: "Register a new user",
-  description: "Register a user in the school system. Supports roles Admin (1), Teacher (2), and Student (3).",
+  description: "Register a user in the school system. Supports roles Admin (3), Teacher (2), and Student (1).",
   tags: ["Users"],
   request: {
     body: {
