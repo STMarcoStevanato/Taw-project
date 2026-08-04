@@ -1,5 +1,5 @@
 import { registry, z } from "../../config/openapi";
-import { applicationBodySchema , UploadParamsSchema, referentApprovalSchema, updateApplicationSchema, updateApplicationBodySchema } from "./application.schema";
+import { applicationBodySchema , UploadParamsSchema, referentApprovalSchema, updateApplicationSchema, updateApplicationBodySchema,applicationParamsSchema, updateApplicationMobilityDatesBodySchema } from "./application.schema";
 
 // GET REGISTRY
 registry.registerPath({
@@ -511,6 +511,67 @@ registry.registerPath({
           }),
         },
       },
+    },
+  },
+});
+
+registry.registerPath({
+  method: "patch",
+  path: "/applications/{applicationId}/mobility-dates",
+  summary: "Update the mobility dates in the application",
+  description: "Set or update arrival_date and departure_date for a specific application. The departure date must be after the arrival date.",
+  tags: ["Applications"],
+  security: [
+    {
+      XSRFToken: [],
+    },
+  ],
+  request: {
+    params: applicationParamsSchema,
+    body: {
+      description: "Arrival and departure dates to set for the application. The departure date must be after the arrival date.",
+      required: true,
+      content: {
+        "application/json": {
+          schema: updateApplicationMobilityDatesBodySchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "Mobility dates updated successfully",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              status: { type: "string", example: "success" },
+              message: { type: "string", example: "Mobility dates updated successfully" },
+              data: {
+                type: "object",
+                properties: {
+                  application_id: { type: "number", example: 123 },
+                  arrival_date: { type: "string", example: "2026-09-15" },
+                  departure_date: { type: "string", example: "2027-02-28" },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    400: {
+      description: "error - Invalid dates or business logic violation (e.g., departure date before arrival date).",
+    },
+    401: {
+      description: "error - User not authenticated.",
+    },
+    403: {
+      description: "error - Access denied (Unauthorized role).",
+    },
+    404: {
+      description: "error - Application not found.",
     },
   },
 });

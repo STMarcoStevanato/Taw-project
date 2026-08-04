@@ -200,3 +200,39 @@ export const updateApplicationSchema = z.object({
 
 export type ApplicationParams = z.infer<typeof applicationParamsSchema>;
 export type UpdateApplicationBody = z.infer<typeof updateApplicationBodySchema>;
+
+export const updateApplicationMobilityDatesBodySchema = registry.register(
+  "UpdateApplicationMobilityDatesRequest",
+  z
+    .object({
+      arrival_date: z
+        .string()
+        .date({ message: "Invalid arrival date format. Expected YYYY-MM-DD." })
+        .openapi({
+          example: "2026-09-15",
+          description: "Data di arrivo prevista",
+        }),
+      departure_date: z
+        .string()
+        .date({ message: "Invalid departure date format. Expected YYYY-MM-DD." })
+        .openapi({
+          example: "2027-02-28",
+          description: "Data di partenza prevista",
+        }),
+    })
+    
+    .refine(
+      (data) => new Date(data.departure_date) > new Date(data.arrival_date),
+      {
+        message: "departure_date must be greater than arrival_date.",
+        path: ["departure_date"],
+      }
+    )
+);
+
+export const updateApplicationMobilityDatesSchema = z.object({
+  params: applicationParamsSchema,
+  body: updateApplicationMobilityDatesBodySchema,
+});
+
+export type UpdateApplicationMobilityDatesBody = z.infer<typeof updateApplicationMobilityDatesBodySchema>;

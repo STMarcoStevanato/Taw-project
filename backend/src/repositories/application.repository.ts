@@ -2,6 +2,7 @@ import { pool } from "../config/db";
 import { CourseMappingsInput } from "../schemas/application/application.schema";
 import { STATES } from "../config/STATE";
 import { Application } from "../types/applications";
+import { from } from "node:stream/iter";
 
 export const getAllApplications = async (): Promise<Application[]> => {
   const query = `
@@ -613,6 +614,56 @@ export const postStaffApproval = async (
       reason
     };
 
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+};
+
+export const updateMobilityDates = async (
+  application_id: number,
+  student_id: number,
+  arrival_date: string,
+  departure_date: string,
+  from_state_id: number,
+  to_state_id: number,
+  reason: string
+) => {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    const query = `
+      UPDATE applications
+      SET arrival_date = $1, departure_date = $2
+      WHERE application_id = $3 AND student_id = $4
+      RETURNING *;
+    `;
+    const result = await client.query(query, [arrival_date, departure_date, application_id, student_id]);
+
+    const transitionQuery = `
+      INSERT INTO application_state_transitions (
+        application_id, 
+        from_state_id, 
+        to_state_id, 
+        performed_by, 
+        reason
+      )
+      VALUES ($1, $2, $3, $4, $5);
+    `;
+    await client.query(transitionQuery, [
+      application_id,
+      from_state_id,
+      to_state_id,
+      student_id,
+      reason
+    ]);
+
+    await client.query("COMMIT");
+
+    return result.rows[0];
   } catch (error) {
     await client.query("ROLLBACK");
     throw error;

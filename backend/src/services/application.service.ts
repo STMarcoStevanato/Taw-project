@@ -8,6 +8,7 @@ import { getApplicationVersionById, getPassedExamsForActiveVersion } from "../re
 import { STATES } from "../config/STATE";
 import * as applicationRepository from "../repositories/application.repository";
 import { Application } from "../types/applications";
+import { from } from "node:stream/iter";
 
 export const getAllApplications = async (): Promise<Application[]> => {
     return applicationRepository.getAllApplications();
@@ -311,4 +312,47 @@ export const staffApproval = async (
     );
 
     return staffApprovalResult;
+};
+
+export const updateMobilityDates = async (
+    application_id: number,
+    user_id: number,
+    arrival_date: string,
+    departure_date: string
+) => {
+
+    const application = await applicationRepository.getApplicationById(application_id);
+    if (!application) {
+        const error = new Error(`Application with ID ${application_id} does not exist`) as any;
+        error.statusCode = 404;
+        throw error;
+    }
+
+    if (Number(application.student_id) !== user_id) {
+        const error = new Error(`User with ID ${user_id} is not authorized to update mobility dates for this application`) as any;
+        error.statusCode = 403;
+        throw error;
+    }
+
+    if (Number(application.current_state_id) !== STATES.PRE_DEPARTURE_COMPLETED) {
+        const error = new Error('Application is not in a valid state for updating mobility dates') as any;
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const from_state_id = Number(application.current_state_id);
+    const to_state_id = STATES.MOBILITY_IN_PROGRESS;
+    const reason = "Mobility dates updated by student";
+
+    const updatedApplication = await applicationRepository.updateMobilityDates(
+        application_id,
+        user_id,
+        arrival_date,
+        departure_date,
+        from_state_id,
+        to_state_id,
+        reason
+    );
+
+    return updatedApplication;
 };
