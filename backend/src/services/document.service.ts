@@ -44,7 +44,7 @@ export const UploadLearningAgreement = async (
         }
 
         const currentState = application.current_state_id;
-        const newState = STATES.AWAITING_LEARNING_AGREEMENT_APPROVAL_BY_REFERENT;
+        const newState = Number(application.current_state_id);
 
         const relativeFilePath = `learning_agreements/${file.filename}`;
 

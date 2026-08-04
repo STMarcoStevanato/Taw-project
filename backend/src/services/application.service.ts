@@ -131,7 +131,11 @@ export const referentApproval = async (
         throw error;
     }
 
-    if (!(Number(application.current_state_id) === STATES.AWAITING_LEARNING_AGREEMENT_APPROVAL_BY_REFERENT || Number(application.current_state_id) === STATES.REJECTED_BY_REFERENT)) {
+    if (!(
+        Number(application.current_state_id) === STATES.AWAITING_LEARNING_AGREEMENT_APPROVAL_BY_REFERENT ||
+        Number(application.current_state_id) === STATES.REJECTED_BY_REFERENT ||
+        Number(application.current_state_id) === STATES.AWAITING_CHANGES_APPROVAL
+    )) {
         const error = new Error('Application is not in a valid state for approval') as any;
         error.statusCode = 400;
         throw error;
@@ -171,8 +175,13 @@ export const referentApproval = async (
     const currentState = application.current_state_id;
 
     let transactionNewState = undefined;
-    if (is_approved) transactionNewState = STATES.AWAITING_LEARNING_AGREEMENT_APPROVAL_BY_STAFF;
-    else transactionNewState = STATES.REJECTED_BY_REFERENT;
+    
+    if (Number(application.current_state_id) === STATES.AWAITING_CHANGES_APPROVAL) 
+        transactionNewState = STATES.MOBILITY_IN_PROGRESS;
+    else {
+        if (is_approved) transactionNewState = STATES.AWAITING_LEARNING_AGREEMENT_APPROVAL_BY_STAFF;
+        else transactionNewState = STATES.REJECTED_BY_REFERENT;
+    }
 
     return await applicationRepository.postReferentApproval(
         application_id,
@@ -218,7 +227,7 @@ export const editApplication = async (
         newState = STATES.AWAITING_CHANGES_APPROVAL;
 
         if (
-            application.host_institution_id !== host_institution_id ||
+            Number(application.host_institution_id) !== host_institution_id ||
             application.academic_year !== academic_year ||
             application.expected_mobility_period !==expected_mobility_period
         ) {
@@ -227,12 +236,13 @@ export const editApplication = async (
             throw error;
         }
 
+        // Check if any passed exams are no longer present in the mappings
         const passedExams = await getPassedExamsForActiveVersion(application_id);
         for (const passed of passedExams) {
             const isStillPresent = mappings.some(
                 (m) =>
-                    m.foreign_course_id === passed.foreign_course_id &&
-                    m.cafoscari_course_id === passed.cafoscari_course_id
+                    m.foreign_course_id === Number(passed.foreign_course_id) &&
+                    m.cafoscari_course_id === Number(passed.cafoscari_course_id)
             );
             if (!isStillPresent) {
                 const error = new Error(`Passed exam ${passed.recognized_exam_id} is no longer present in the application mappings`) as any;

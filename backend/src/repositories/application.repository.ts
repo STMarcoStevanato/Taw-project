@@ -551,6 +551,29 @@ export const updateApplication = async (
       `;
 
       await client.query(mappingsQuery, queryParams);
+
+      // 6. Copying recognized exams from the previous active version to the new version
+      const copyRecognizedExamsQuery = `
+        INSERT INTO recognized_exams (mapping_id, exam_date, foreign_score)
+        SELECT 
+          new_m.mapping_id, 
+          re.exam_date, 
+          re.foreign_score
+        FROM application_version_mappings new_m
+        INNER JOIN application_versions new_v 
+          ON new_m.version_id = new_v.version_id
+        INNER JOIN application_versions old_v 
+          ON old_v.application_id = new_v.application_id AND old_v.is_active = true
+        INNER JOIN application_version_mappings old_m 
+          ON old_m.version_id = old_v.version_id 
+          AND old_m.foreign_course_id IS NOT DISTINCT FROM new_m.foreign_course_id
+          AND old_m.cafoscari_course_id IS NOT DISTINCT FROM new_m.cafoscari_course_id
+        INNER JOIN recognized_exams re 
+          ON re.mapping_id = old_m.mapping_id
+        WHERE new_v.version_id = $1;
+      `;
+
+      await client.query(copyRecognizedExamsQuery, [newVersionId]);
     }
 
     await client.query("COMMIT");
