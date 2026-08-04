@@ -22,8 +22,14 @@ export const createRecognizedExam = async (
     throw error;
   }
 
-  if (Number(application.current_state_id) !== STATES.MOBILITY_IN_PROGRESS) {
-    const error = new Error("Exams can only be recorded when application is in MOBILITY_IN_PROGRESS state") as any;
+  if (Number(application.student_id) !== user_id) {
+    const error = new Error("User is not authorized to record exams for this application") as any;
+    error.statusCode = 403;
+    throw error;
+  }
+
+  if (!(Number(application.current_state_id) === STATES.MOBILITY_IN_PROGRESS || Number(application.current_state_id) === STATES.AWAITING_CHANGES_APPROVAL)) {
+    const error = new Error("Exams can only be recorded when application is in MOBILITY_IN_PROGRESS or AWAITING_CHANGES_APPROVAL state") as any;
     error.statusCode = 400;
     throw error;
   }
@@ -34,6 +40,22 @@ export const createRecognizedExam = async (
   );
   if (!isActiveVersion) {
     const error = new Error(`Mapping ${mapping_id} is not part of the active application version`) as any;
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const recognizedExam = await examRepository.getRecognizedExamsByMappingId(mapping_id);
+  if (recognizedExam) {
+    const error = new Error(`An exam has already been recorded for mapping ${mapping_id}`) as any;
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const examDay = exam_date.slice(0, 10);
+  const arrivalDay = new Date(application.arrival_date).toISOString().slice(0, 10);
+
+  if (examDay < arrivalDay) {
+    const error = new Error("Exam date cannot be before application arrival date") as any;
     error.statusCode = 400;
     throw error;
   }

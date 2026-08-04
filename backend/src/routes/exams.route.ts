@@ -7,6 +7,6 @@ import { hasRole } from "../middleware/roleHandler";
 
 const router = Router();
 
-router.post("/", isAuth, hasRole(["staff", "referents", "students"]), validate(createExamSchema), createRecognizedExam);
+router.post("/", isAuth, hasRole(["students"]), validate(createExamSchema), createRecognizedExam);
 
 export default router;

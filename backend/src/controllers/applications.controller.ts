@@ -188,3 +188,30 @@ export const staffApproval = async (
         next(err);
     }
 };
+
+export const updateMobilityDates = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const userId = (req as any).user.user_id;
+        const applicationId = Number(req.params.applicationId);
+        const { arrival_date, departure_date } = req.body;
+
+        const result = await applicationService.updateMobilityDates(
+            applicationId,
+            userId,
+            arrival_date,
+            departure_date
+        );
+
+        return res.status(200).json({
+            status: "success",
+            data: result,
+        });
+
+    } catch (err) {
+        next(err);
+    }
+};

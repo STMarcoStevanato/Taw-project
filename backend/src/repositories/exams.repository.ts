@@ -57,3 +57,18 @@ export const createRecognizedExam = async (
 
   return result.rows[0];
 };
+
+export const getRecognizedExamsByMappingId = async (mappingId: number) => {
+  const query = `
+    SELECT 
+      recognized_exam_id,
+      mapping_id,
+      exam_date,
+      foreign_score,
+      created_at
+    FROM recognized_exams
+    WHERE mapping_id = $1;
+  `;
+  const result = await pool.query(query, [mappingId]);
+  return result.rows[0] || null;
+};

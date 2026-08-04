@@ -2,6 +2,7 @@ import { pool } from "../config/db";
 import { CourseMappingsInput } from "../schemas/application/application.schema";
 import { STATES } from "../config/STATE";
 import { Application } from "../types/applications";
+import { from } from "node:stream/iter";
 
 export const getAllApplications = async (): Promise<Application[]> => {
   const query = `
@@ -648,6 +649,29 @@ export const updateApplication = async (
       `;
 
       await client.query(mappingsQuery, queryParams);
+
+      // 6. Copying recognized exams from the previous active version to the new version
+      const copyRecognizedExamsQuery = `
+        INSERT INTO recognized_exams (mapping_id, exam_date, foreign_score)
+        SELECT 
+          new_m.mapping_id, 
+          re.exam_date, 
+          re.foreign_score
+        FROM application_version_mappings new_m
+        INNER JOIN application_versions new_v 
+          ON new_m.version_id = new_v.version_id
+        INNER JOIN application_versions old_v 
+          ON old_v.application_id = new_v.application_id AND old_v.is_active = true
+        INNER JOIN application_version_mappings old_m 
+          ON old_m.version_id = old_v.version_id 
+          AND old_m.foreign_course_id IS NOT DISTINCT FROM new_m.foreign_course_id
+          AND old_m.cafoscari_course_id IS NOT DISTINCT FROM new_m.cafoscari_course_id
+        INNER JOIN recognized_exams re 
+          ON re.mapping_id = old_m.mapping_id
+        WHERE new_v.version_id = $1;
+      `;
+
+      await client.query(copyRecognizedExamsQuery, [newVersionId]);
     }
 
     await client.query("COMMIT");
@@ -711,6 +735,56 @@ export const postStaffApproval = async (
       reason
     };
 
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
+};
+
+export const updateMobilityDates = async (
+  application_id: number,
+  student_id: number,
+  arrival_date: string,
+  departure_date: string,
+  from_state_id: number,
+  to_state_id: number,
+  reason: string
+) => {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+
+    const query = `
+      UPDATE applications
+      SET arrival_date = $1, departure_date = $2
+      WHERE application_id = $3 AND student_id = $4
+      RETURNING *;
+    `;
+    const result = await client.query(query, [arrival_date, departure_date, application_id, student_id]);
+
+    const transitionQuery = `
+      INSERT INTO application_state_transitions (
+        application_id, 
+        from_state_id, 
+        to_state_id, 
+        performed_by, 
+        reason
+      )
+      VALUES ($1, $2, $3, $4, $5);
+    `;
+    await client.query(transitionQuery, [
+      application_id,
+      from_state_id,
+      to_state_id,
+      student_id,
+      reason
+    ]);
+
+    await client.query("COMMIT");
+
+    return result.rows[0];
   } catch (error) {
     await client.query("ROLLBACK");
     throw error;
