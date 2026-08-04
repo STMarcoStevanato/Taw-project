@@ -1,5 +1,48 @@
 import { z, registry } from "../../config/openapi"; 
 
+export const studentParamsSchema = z.object({
+  studentId: z
+    .string()
+    .openapi({
+      param: {
+        name: "studentId",
+        in: "path",
+        required: true,
+        description: "The unique ID of the student",
+      },
+      example: "20",
+    }),
+});
+
+export const referentParamsSchema = z.object({
+  referentId: z
+    .string()
+    .openapi({
+      param: {
+        name: "referentId",
+        in: "path",
+        required: true,
+        description: "The unique ID of the referent",
+      },
+      example: "17",
+    }),
+});
+
+export const transitionParamsSchema = z.object({
+  transitionId: z
+    .string()
+    .openapi({
+      param: {
+        name: "transitionId",
+        in: "path",
+        required: true,
+        description: "The unique ID of the transition",
+      },
+      example: "5",
+    }),
+});
+
+
 const courseMappingSchema = z
   .object({
     foreign_course_id: z

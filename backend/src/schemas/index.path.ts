@@ -15,3 +15,6 @@ import "./application/application.path";
 
 import "./document/document.schema";
 import "./document/document.path";
+
+import "./exam/exam.schema";
+import "./exam/exam.path";

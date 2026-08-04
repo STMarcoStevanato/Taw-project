@@ -1,5 +1,5 @@
 import { registry, z } from "../../config/openapi";
-import { applicationBodySchema , UploadParamsSchema, referentApprovalSchema, updateApplicationSchema, updateApplicationBodySchema } from "./application.schema";
+import { applicationBodySchema , UploadParamsSchema, referentApprovalSchema, updateApplicationSchema, updateApplicationBodySchema, studentParamsSchema, referentParamsSchema, transitionParamsSchema } from "./application.schema";
 
 // GET REGISTRY
 registry.registerPath({
@@ -54,6 +54,9 @@ registry.registerPath({
   summary: "Retrieve applications for a specific student",
   description: "Fetches a list of all study abroad applications associated with a specific student.",
   tags: ["Applications"],
+  request: {
+    params: studentParamsSchema,
+  },
   responses: {
     200: {
       description: "Applications retrieved successfully",
@@ -110,6 +113,9 @@ registry.registerPath({
   summary: "Retrieve applications for a specific referent",
   description: "Fetches a list of all study abroad applications associated with a specific academic referent.",
   tags: ["Applications"],
+  request: {
+    params: referentParamsSchema,
+  },
   responses: {
     200: {
       description: "Applications retrieved successfully",
@@ -139,6 +145,61 @@ registry.registerPath({
         "application/json": {
           schema: z.object({
             message: z.string().openapi({ example: "Referent with ID 17 does not exist." }),
+          }),
+        },
+      },
+    },
+    500: {
+      description: "Internal server error.",
+      content: {
+        "application/json": {
+          schema: z.object({
+            message: z.string().openapi({ example: "Internal server error" }),
+          }),
+        },
+      },
+    },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/applications/transition/{transitionId}",
+  summary: "Retrieve applications for a specific transition",
+  description: "Fetches a list of all study abroad applications associated with a specific transition.",
+  tags: ["Applications"],
+  request: {
+    params: transitionParamsSchema,
+  },
+  responses: {
+    200: {
+      description: "Applications retrieved successfully",
+      content: {
+        "application/json": {
+          schema: z.object({
+            status: z.string().openapi({ example: "success" }),
+            results: z.number().openapi({ example: 2 }),
+            data: z.object({
+              applications: z.array(
+                z.object({
+                  application_id: z.number().openapi({ example: 1 }),
+                  student_id: z.number().openapi({ example: 20 }),
+                  referent_id: z.number().openapi({ example: 17 }),
+                  host_institution_id: z.number().openapi({ example: 3 }),
+                  academic_year: z.string().openapi({ example: "2025/26" }),  
+                })
+              ),
+            }),
+          }),
+        },
+      },
+    },
+    404: {
+      description: "Transition not found.",
+      content: {
+        "application/json": {
+          schema: z.object({
+            message: z.string().openapi({ example: "Transition with ID 5 does not exist." }),
           }),
         },
       },
