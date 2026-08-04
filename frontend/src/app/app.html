@@ -1,0 +1,138 @@
+<div class="page-shell">
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="Overseas portal home">
+      Overseas Portal
+    </a>
+
+    @if (!isAuthenticated()) {
+      <nav class="actions" aria-label="Authentication actions">
+        <button type="button" [class.active]="mode() === 'login'" (click)="setMode('login')">
+          Login
+        </button>
+        <button type="button" [class.active]="mode() === 'signup'" (click)="setMode('signup')">
+          Sign Up
+        </button>
+      </nav>
+    } @else {
+      <div class="session-actions" aria-label="Active session actions">
+        <button class="user-pill trigger" type="button" (click)="toggleProfileMenu()" [attr.aria-expanded]="profileMenuOpen()">
+          <span>{{ currentUser()?.name }} {{ currentUser()?.lastname }}</span>
+          <span class="chevron">{{ profileMenuOpen() ? '▲' : '▼' }}</span>
+        </button>
+
+        @if (profileMenuOpen()) {
+          <div class="profile-menu" role="menu" aria-label="Profile menu">
+            <p class="menu-name">{{ currentUser()?.name }} {{ currentUser()?.lastname }}</p>
+            <p class="menu-email">{{ currentUser()?.email }}</p>
+            <p class="menu-role">Role: {{ prettifyRole(currentUser()?.role) }}</p>
+            <button type="button" class="menu-action" (click)="openDashboardStub()">
+              Go to dashboard
+            </button>
+            <button type="button" class="menu-action danger" (click)="submitLogout()" [disabled]="loading()">
+              {{ loading() ? 'Signing out...' : 'Logout' }}
+            </button>
+          </div>
+          <button type="button" class="menu-backdrop" aria-label="Close menu" (click)="closeProfileMenu()"></button>
+        }
+      </div>
+    }
+  </header>
+
+  <main class="hero">
+    <section class="intro">
+      <p class="eyebrow">Taw Project</p>
+      <h1>{{ title() }}</h1>
+      <p>
+        Minimal landing experience with real API integration. Forms send the exact payload expected by your backend.
+      </p>
+      <p class="hint">
+        Role mapping used by backend service: 1 = students, 2 = referents, 3 = staff.
+      </p>
+    </section>
+
+    <section class="auth-card">
+      @if (isAuthenticated()) {
+        <div class="session-panel">
+          <h2>Session Active</h2>
+          <p>You are logged in and your browser now carries the authentication cookie.</p>
+          <p class="meta">Role: {{ currentUser()?.role }} | User ID: {{ currentUser()?.user_id }}</p>
+          <button class="submit" type="button" (click)="submitLogout()" [disabled]="loading()">
+            {{ loading() ? 'Signing out...' : 'Logout from this session' }}
+          </button>
+        </div>
+      } @else if (mode() === 'login') {
+        <form class="auth-form" [formGroup]="loginForm" (ngSubmit)="submitLogin()" novalidate>
+          <h2>Login</h2>
+
+          <label for="login-email">Email</label>
+          <input id="login-email" type="email" formControlName="email" placeholder="eren.jaeger@example.com" />
+          @if (loginForm.controls.email.touched && loginForm.controls.email.invalid) {
+            <small class="field-error">Provide a valid email address.</small>
+          }
+
+          <label for="login-password">Password</label>
+          <input id="login-password" type="password" formControlName="password" placeholder="Password123!" />
+          @if (loginForm.controls.password.touched && loginForm.controls.password.invalid) {
+            <small class="field-error">Password is required.</small>
+          }
+
+          <button class="submit" type="submit" [disabled]="loading()">
+            {{ loading() ? 'Logging in...' : 'Login' }}
+          </button>
+        </form>
+      } @else {
+        <form class="auth-form" [formGroup]="signupForm" (ngSubmit)="submitSignup()" novalidate>
+          <h2>Sign Up</h2>
+
+          <label for="signup-name">Name</label>
+          <input id="signup-name" type="text" formControlName="name" placeholder="Eren" />
+
+          <label for="signup-lastname">Lastname</label>
+          <input id="signup-lastname" type="text" formControlName="lastname" placeholder="Jaeger" />
+
+          <label for="signup-email">Email</label>
+          <input id="signup-email" type="email" formControlName="email" placeholder="eren.jaeger@example.com" />
+          @if (signupForm.controls.email.touched && signupForm.controls.email.invalid) {
+            <small class="field-error">Provide a valid email address.</small>
+          }
+
+          <label for="signup-password1">Password</label>
+          <input id="signup-password1" type="password" formControlName="password1" placeholder="Password123!" />
+          @if (signupForm.controls.password1.touched && signupForm.controls.password1.invalid) {
+            <small class="field-error">
+              Minimum 8 chars with lowercase, uppercase, number, and special character.
+            </small>
+          }
+
+          <label for="signup-password2">Confirm Password</label>
+          <input id="signup-password2" type="password" formControlName="password2" placeholder="Password123!" />
+          @if (signupForm.touched && signupForm.hasError('passwordsMismatch')) {
+            <small class="field-error">Passwords do not match.</small>
+          }
+
+          <label for="signup-role">Role</label>
+          <select id="signup-role" formControlName="role">
+            @for (role of roleOptions; track role.value) {
+              <option [ngValue]="role.value">{{ role.label }}</option>
+            }
+          </select>
+
+          <button class="submit" type="submit" [disabled]="loading()">
+            {{ loading() ? 'Creating account...' : 'Create account' }}
+          </button>
+        </form>
+      }
+
+      @if (feedback()) {
+        <p class="feedback" [class.error]="feedbackType() === 'error'">
+          {{ feedback() }}
+        </p>
+      }
+    </section>
+  </main>
+
+  <footer class="footnote">
+    <span>localhost:4200 -> localhost:3000 API</span>
+    <span>Copyright {{ currentYear }} Taw Project</span>
+  </footer>
+</div>
