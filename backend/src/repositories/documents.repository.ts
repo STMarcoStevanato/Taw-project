@@ -11,8 +11,8 @@ export const insertLearningAgreement = async (
     application_id: number,
     user_id: number,
     currentState: number,
-    newState: number
-    
+    newState: number,
+    reason: string
 ) => {
     const client = await pool.connect();
 
@@ -59,7 +59,7 @@ export const insertLearningAgreement = async (
                 $2,
                 $3,
                 $4,
-                'Learning Agreement uploaded'
+                $5
             )
         `;
 
@@ -68,6 +68,7 @@ export const insertLearningAgreement = async (
             currentState,
             newState,
             user_id,
+            reason
         ]);
 
         await client.query("COMMIT");

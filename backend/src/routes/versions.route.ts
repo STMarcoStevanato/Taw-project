@@ -23,11 +23,20 @@ router.post(
      validationControllers.uploadLearningAgreement
     ); 
 
-router.get(
-    "/:versionId/documents/:documentId",
-    isAuth,
-    hasRole(["students", "referents", "staff"]),
-    validationControllers.getDocumentById
-  );
+router.post(
+    "/:versionId/records-file",
+     isAuth,
+     hasRole(["students"]),
+     createPdfUploader({
+        fieldName: 'TRANSCRIPT_OF_RECORDS',
+        folderName: 'transcripts_of_records'
+      }),
+     handleMulterError,
+     validate(uploadDocumentSchema),
+     validationControllers.uploadRecordsFile
+    );
+
+router.get("/:versionId/documents/:documentId", isAuth, hasRole(["students", "referents", "staff"]), validationControllers.getDocumentById);
+router.get("/:versionId/records-file", isAuth, hasRole(["students"]), validationControllers.getRecordsFile);
 
 export default router;

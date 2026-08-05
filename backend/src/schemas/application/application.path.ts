@@ -1,10 +1,5 @@
 import { registry, z } from "../../config/openapi";
-<<<<<<< HEAD
-import { applicationBodySchema , UploadParamsSchema, referentApprovalSchema, updateApplicationSchema, updateApplicationBodySchema, studentParamsSchema, referentParamsSchema, transitionParamsSchema } from "./application.schema";
-=======
-import { applicationBodySchema , UploadParamsSchema, referentApprovalSchema, updateApplicationSchema, updateApplicationBodySchema,applicationParamsSchema, updateApplicationMobilityDatesBodySchema } from "./application.schema";
->>>>>>> 781b135af836674aede8fc8f8578112be029c07d
-
+import { applicationBodySchema, UploadParamsSchema, referentApprovalSchema, updateApplicationSchema, updateApplicationBodySchema, studentParamsSchema, referentParamsSchema, transitionParamsSchema, applicationParamsSchema, updateApplicationMobilityDatesBodySchema } from "./application.schema";
 // GET REGISTRY
 registry.registerPath({
   method: "get",

@@ -21,3 +21,14 @@ export const getState = async (): Promise<State[]> => {
     const result =  await pool.query(query);
     return result.rows;
 }
+
+export const insertNewTransaction = async (applicationId: number, fromState: number|null, toState:number, performedBy: number, reason: string) => {
+    const query = `
+    INSERT INTO application_state_transitions (application_id, from_state_id, to_state_id, performed_by, reason)
+    VALUES ($1, $2, $3, $4, $5)
+    RETURNING *;
+    `;
+
+    const result = await pool.query(query, [applicationId, fromState, toState, performedBy, reason]);
+    return result.rows[0] || null;
+}

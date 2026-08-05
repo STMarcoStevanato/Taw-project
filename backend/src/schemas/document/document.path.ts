@@ -1,5 +1,5 @@
 import { z, registry } from "../../config/openapi";
-import { UploadParamsSchema, uploadDocumentSchema , GetDocumentParamsSchema, GetDocumentQuerySchema} from "./document.schema"; 
+import { UploadParamsSchema, uploadDocumentSchema , GetDocumentParamsSchema, GetDocumentQuerySchema, VersionParamsSchema, TranscriptOfRecordsPdfFileSchema} from "./document.schema"; 
 
 const LearningAgreementResponseSchema = registry.register(
   "LearningAgreementResponse",
@@ -117,6 +117,115 @@ registry.registerPath({
     },
     404: {
       description: "Not Found - Document record or physical file missing on server storage.",
+    },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/versions/{versionId}/records-file",
+  summary: "Download the Transcript of Records PDF document",
+  description:
+    "Generates and streams the Transcript of Records PDF document for a given application version, containing student info, host university details, and recognized course exams.",
+  tags: ["Documents"],
+  security: [
+    {
+      XSRFToken: [],
+    },
+  ],
+  request: {
+    params: VersionParamsSchema,
+  },
+  responses: {
+    200: {
+      description: "PDF document generated and downloaded successfully.",
+      content: {
+        "application/pdf": {
+          schema: z.string().openapi({
+            type: "string",
+            format: "binary",
+            description: "The generated Transcript of Records PDF file.",
+          }),
+        },
+      },
+    },
+    400: {
+      description: "Bad Request - Invalid versionId parameter.",
+    },
+    401: {
+      description: "Unauthorized - User is not authenticated.",
+    },
+    403: {
+      description: "Forbidden - Insufficient permissions (requires 'students' role) or user does not own this application version.",
+    },
+    404: {
+      description: "Not Found - Application version or document records not found.",
+    },
+    500: {
+      description: "Internal Server Error - Error generating the PDF document.",
+    },
+  },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/versions/{versionId}/records-file",
+  summary: "Upload a Transcript of Records PDF document",
+  description:
+    "Uploads a Transcript of Records PDF document for the specified application version. The file is handled via multipart/form-data under the field name 'TRANSCRIPT_OF_RECORDS'.",
+  tags: ["Documents"],
+  security: [
+    {
+      XSRFToken: [],
+    },
+  ],
+  request: {
+    params: UploadParamsSchema,
+    body: {
+      content: {
+        "multipart/form-data": {
+          schema: z.object({
+            TRANSCRIPT_OF_RECORDS: z.string().openapi({
+              type: "string",
+              format: "binary",
+              description: "The Transcript of Records PDF file to upload (Max 10MB)",
+            }),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: "Transcript of Records uploaded successfully.",
+      content: {
+        "application/json": {
+          schema: z.object({
+            status: z.literal("success").openapi({ example: "success" }),
+            data: TranscriptOfRecordsPdfFileSchema,
+          }),
+        },
+      },
+    },
+    400: {
+      description:
+        "Bad Request - Missing or invalid 'TRANSCRIPT_OF_RECORDS' file field, file type is not PDF, exceeds size limit, or fails validation schema.",
+    },
+    401: {
+      description: "Unauthorized - User is not authenticated.",
+    },
+    403: {
+      description:
+        "Forbidden - Insufficient permissions (requires 'students' role) or user is not authorized to modify this application version.",
+    },
+    404: {
+      description: "Not Found - Application version not found.",
+    },
+    409: {
+      description: "Conflict - State transition conflict or document already uploaded for this version.",
+    },
+    500: {
+      description: "Internal Server Error - File processing or storage error.",
     },
   },
 });

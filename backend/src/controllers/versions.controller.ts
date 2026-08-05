@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { UploadLearningAgreement } from "../services/document.service";
-import { getDocumentFileService } from "../services/document.service";
+import { UploadLearningAgreement, getDocumentRecordsFile, getDocumentFileService, UploadTraqnscriptOfRecords } from "../services/document.service";
+import { generateRecordsFile } from "../services/pdfService";
 
 export const uploadLearningAgreement = async (
     req: Request,
@@ -44,6 +44,54 @@ export const getDocumentById = async (
         );
 
         return res.sendFile(fileData.absolutePath);
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const getRecordsFile = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const versionId = Number(req.params.versionId);
+        const userId = (req as any).user?.user_id;
+
+        const result = await getDocumentRecordsFile(versionId, userId);
+
+        // Set the HTTP headers to always force the PDF to download
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader(
+            "Content-Disposition",
+            `attachment; filename=Transcript_of_Records_v${versionId}.pdf`
+        );
+
+        // Generate the PDF and send the stream
+        const doc = generateRecordsFile(result);
+        doc.pipe(res);
+
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const uploadRecordsFile = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const versionId = Number(req.params.versionId);
+        const file = req.file!; 
+        const userId = (req as any).user?.user_id;
+
+        const newRecordsFile = await UploadTraqnscriptOfRecords(versionId, file, userId);
+
+        return res.status(201).json({
+            status: "success",
+            data: newRecordsFile,
+        });
     } catch (err) {
         next(err);
     }

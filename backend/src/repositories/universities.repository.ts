@@ -72,3 +72,34 @@ export const findUniversityById = async (university_id: number): Promise<boolean
   const result = await pool.query(query, [university_id]);
   return result.rows[0].exists;
 }
+
+export const getUniversityById = async (university_id: number): Promise<University | null> => {
+  const query = `
+    SELECT 
+      u.university_id, 
+      u.name, 
+      u.city, 
+      c.country_id, 
+      c.name AS country_name
+    FROM universities u
+    JOIN countries c ON u.country_id = c.country_id
+    WHERE u.university_id = $1;
+  `;
+
+  const result = await pool.query(query, [university_id]);
+
+  if (result.rows.length === 0) {
+    return null; // University not found
+  }
+
+  const row = result.rows[0];
+  return {
+    university_id: row.university_id,
+    name: row.name,
+    city: row.city,
+    Countries: {
+      country_id: row.country_id,
+      name: row.country_name
+    }
+  };
+};  

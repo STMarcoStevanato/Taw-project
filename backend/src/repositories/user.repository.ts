@@ -111,3 +111,12 @@ export const findReferentById = async (referentId: number): Promise<boolean> => 
   const result = await pool.query(query, [referentId]);
   return result.rows[0].exists;
 };
+
+export const getUserById = async (userId: number) => {
+  const query = `
+    SELECT name, lastname, email FROM users WHERE user_id = $1;
+  `;
+
+  const result = await pool.query(query, [userId]);
+  return result.rows[0] || null;
+};

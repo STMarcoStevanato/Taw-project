@@ -1,4 +1,5 @@
 import { pool } from "../config/db";
+import { ApplicationVersionMapping } from "../types/exams";
 
 
 export const getMappingById = async (mappingId: number) => {
@@ -71,4 +72,40 @@ export const getRecognizedExamsByMappingId = async (mappingId: number) => {
   `;
   const result = await pool.query(query, [mappingId]);
   return result.rows[0] || null;
+};
+
+export const getMappingByVersionId = async (version_id: number): Promise<ApplicationVersionMapping | null> => {
+  const query = `
+    SELECT 
+      jsonb_build_object(
+        'version_id', v.version_id,
+        'mappings', COALESCE(
+          jsonb_agg(
+            jsonb_build_object(
+              'mapping_id', m.mapping_id,
+              'foreign_course_id', m.foreign_course_id,
+              'cafoscari_course_id', m.cafoscari_course_id,
+              'recognized_exam', CASE 
+                WHEN r.recognized_exam_id IS NOT NULL THEN
+                  jsonb_build_object(
+                    'recognized_exam_id', r.recognized_exam_id,
+                    'exam_date', r.exam_date,
+                    'foreign_score', r.foreign_score
+                  )
+                ELSE NULL
+              END
+            )
+          ) FILTER (WHERE m.mapping_id IS NOT NULL),
+          '[]'::jsonb
+        )
+      ) AS result
+    FROM application_versions v
+    LEFT JOIN application_version_mappings m ON v.version_id = m.version_id
+    LEFT JOIN recognized_exams r ON m.mapping_id = r.mapping_id
+    WHERE v.version_id = $1
+    GROUP BY v.version_id;
+  `;
+
+  const result = await pool.query(query, [version_id]);
+  return result.rows[0]?.result || null;
 };

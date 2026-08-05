@@ -44,6 +44,32 @@ export const PdfFileSchema = registry.register(
   })
 );
 
+export const TranscriptOfRecordsPdfFileSchema = registry.register(
+  "TranscriptOfRecordsPdfFile",
+  z.object({
+    fieldname: z.string().openapi({ example: "TRANSCRIPT_OF_RECORDS" }),
+    originalname: z.string({
+      message: 'The original file name is required.'
+    }).openapi({ example: "Transcript_of_Records_Eren_Jaeger.pdf" }),
+    encoding: z.string().openapi({ example: "7bit" }),
+    mimetype: z
+      .literal('application/pdf', {
+        message: 'The file must be in PDF format only.'
+      })
+      .openapi({ example: "application/pdf" }),
+    size: z
+      .number()
+      .positive()
+      .max(10 * 1024 * 1024, {
+        message: 'The file size cannot exceed 10 MB.'
+      })
+      .openapi({ example: 2458112 }),
+    path: z.string({
+      message: 'The file path is required.'
+    }).openapi({ example: "transcripts_of_records/TOR-v10-1722822000.pdf" }),
+  })
+);
+
 
 export const uploadDocumentSchema = z.object({
   params: UploadParamsSchema,
@@ -82,3 +108,19 @@ export const GetDocumentQuerySchema = registry.register(
       }),
   })
 );
+
+export const VersionParamsSchema = z.object({
+  versionId: z
+    .string()
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().positive())
+    .openapi({
+      param: {
+        name: "versionId",
+        in: "path",
+      },
+      type: "integer",
+      example: 10,
+      description: "ID univoco della versione dell'application",
+    }),
+});
