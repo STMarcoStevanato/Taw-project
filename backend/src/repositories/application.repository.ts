@@ -7,59 +7,60 @@ import { from } from "node:stream/iter";
 export const getAllApplications = async (): Promise<Application[]> => {
   const query = `
     SELECT
-      a.application_id,
+      a.application_id::text as application_id,
 
-      a.student_id,
+      a.student_id::text as student_id,
       s.name as student_name,
       s.lastname as student_lastname,
       s.email as student_email,
       
-      a.referent_id,
+      a.referent_id::text as referent_id,
       r.name as referent_name,
       r.lastname as referent_lastname,
       r.email as referent_email,
 
-      a.host_institution_id,
+      a.host_institution_id::text as host_institution_id,
       hi.name as host_institution_name,
-      hi.country_id as host_institution_country_id,
+      hi.country_id::text as host_institution_country_id,
       c.name as host_institution_country_name,
       hi.city as host_institution_city,
 
-      a.current_state_id,
+      a.current_state_id::text as current_state_id,
       cs.name as current_state_name,
-      a.academic_year,
-      a.expected_mobility_period,
+      a.academic_year as academic_year,
+      a.expected_mobility_period as expected_mobility_period,
 
-      COALESCE(
-        json_agg(
-          DISTINCT jsonb_build_object(
+      -- Sottoquery per aggregare le versioni e i relativi mapping
+      COALESCE((
+        SELECT json_agg(
+          json_build_object(
             'version_id', v.version_id,
             'version_number', v.version_number,
             'is_active', v.is_active,
-            'foreign_course_id', m.foreign_course_id,
-            'cafoscari_course_id', m.cafoscari_course_id
-          )
-        ) FILTER (WHERE v.version_id IS NOT NULL), 
-        '[]'::json
-      ) as versions
+            'mapping', COALESCE((
+              SELECT json_agg(
+                json_build_object(
+                  'mapping_id', m.mapping_id,
+                  'foreign_course_id', m.foreign_course_id,
+                  'cafoscari_course_id', m.cafoscari_course_id
+                )
+              )
+              FROM application_version_mappings m
+              WHERE m.version_id = v.version_id
+            ), '[]'::json)
+          ) ORDER BY v.version_number ASC
+        )
+        FROM application_versions v
+        WHERE v.application_id = a.application_id
+      ), '[]'::json) AS versions
 
     FROM applications a
     JOIN users s ON a.student_id = s.user_id
     JOIN users r ON a.referent_id = r.user_id
     JOIN universities hi ON a.host_institution_id = hi.university_id
     JOIN countries c ON hi.country_id = c.country_id
-    JOIN application_states cs ON a.current_state_id = cs.state_id
-    LEFT JOIN application_versions v ON a.application_id = v.application_id
-    LEFT JOIN application_version_mappings m ON v.version_id = m.version_id
-
-    GROUP BY 
-      a.application_id, 
-      s.user_id, 
-      r.user_id, 
-      hi.university_id, 
-      c.country_id, 
-      cs.state_id;
-  `;
+    JOIN application_states cs ON a.current_state_id = cs.state_id;
+    `;
 
   const result = await pool.query(query);
 
@@ -90,8 +91,7 @@ export const getAllApplications = async (): Promise<Application[]> => {
     },
     academic_year: row.academic_year,
     expected_mobility_period: row.expected_mobility_period,
-
-    versions: row.versions
+    versions: row.versions,
   }));
 };
 
@@ -99,36 +99,46 @@ export const getAllApplications = async (): Promise<Application[]> => {
 export const getStudentApplications = async (studentId: number): Promise<Application[]> => {
   const query = `
     SELECT
-    a.application_id as application_id,
+      a.application_id::text as application_id,
 
-    a.referent_id as referent_id,
-    r.name as referent_name,
-    r.lastname as referent_lastname,
-    r.email as referent_email,
+      a.referent_id::text as referent_id,
+      r.name as referent_name,
+      r.lastname as referent_lastname,
+      r.email as referent_email,
 
-    a.host_institution_id as host_institution_id,
-    hi.name as host_institution_name,
-    hi.country_id as host_institution_country_id,
-    c.name as host_institution_country_name,
-    hi.city as host_institution_city,
+      a.host_institution_id::text as host_institution_id,
+      hi.name as host_institution_name,
+      hi.country_id::text as host_institution_country_id,
+      c.name as host_institution_country_name,
+      hi.city as host_institution_city,
 
-    a.current_state_id as current_state_id,
-    cs.name as current_state_name,
-    a.academic_year as academic_year,
-    a.expected_mobility_period as expected_mobility_period,
+      a.current_state_id::text as current_state_id,
+      cs.name as current_state_name,
+      a.academic_year as academic_year,
+      a.expected_mobility_period as expected_mobility_period,
 
-    COALESCE(
-      json_agg(
-        DISTINCT jsonb_build_object(
-          'version_id', v.version_id,
-          'version_number', v.version_number,
-          'is_active', v.is_active,
-          'foreign_course_id', m.foreign_course_id,
-          'cafoscari_course_id', m.cafoscari_course_id
+      COALESCE((
+        SELECT json_agg(
+          json_build_object(
+            'version_id', v.version_id,
+            'version_number', v.version_number,
+            'is_active', v.is_active,
+            'mapping', COALESCE((
+              SELECT json_agg(
+                json_build_object(
+                  'mapping_id', m.mapping_id,
+                  'foreign_course_id', m.foreign_course_id,
+                  'cafoscari_course_id', m.cafoscari_course_id
+                )
+              )
+              FROM application_version_mappings m
+              WHERE m.version_id = v.version_id
+            ), '[]'::json)
+          ) ORDER BY v.version_number ASC
         )
-      ) FILTER (WHERE v.version_id IS NOT NULL), 
-      '[]'::json
-    ) as versions
+        FROM application_versions v
+        WHERE v.application_id = a.application_id
+      ), '[]'::json) AS versions
     
     FROM applications a
     JOIN users s ON a.student_id = s.user_id
@@ -136,17 +146,7 @@ export const getStudentApplications = async (studentId: number): Promise<Applica
     JOIN universities hi ON a.host_institution_id = hi.university_id
     JOIN countries c ON hi.country_id = c.country_id
     JOIN application_states cs ON a.current_state_id = cs.state_id
-    LEFT JOIN application_versions v ON a.application_id = v.application_id
-    LEFT JOIN application_version_mappings m ON v.version_id = m.version_id
-    WHERE a.student_id = $1
-
-    GROUP BY 
-      a.application_id, 
-      s.user_id, 
-      r.user_id, 
-      hi.university_id, 
-      c.country_id, 
-      cs.state_id;
+    WHERE a.student_id = $1;
   `;
 
   const result = await pool.query(query, [studentId]);
@@ -172,42 +172,52 @@ export const getStudentApplications = async (studentId: number): Promise<Applica
     academic_year: row.academic_year,
     expected_mobility_period: row.expected_mobility_period,
     versions: row.versions
-  }))
-}
+  }));
+};
 
 export const getReferentApplications = async (referentId: number): Promise<Application[]> => {
   const query = `
     SELECT
-    a.application_id as application_id,
+      a.application_id::text as application_id,
 
-    a.student_id as student_id,
-    s.name as student_name,
-    s.lastname as student_lastname,
-    s.email as student_email,
+      a.student_id::text as student_id,
+      s.name as student_name,
+      s.lastname as student_lastname,
+      s.email as student_email,
 
-    a.host_institution_id as host_institution_id,
-    hi.name as host_institution_name,
-    hi.country_id as host_institution_country_id,
-    c.name as host_institution_country_name,
-    hi.city as host_institution_city,
+      a.host_institution_id::text as host_institution_id,
+      hi.name as host_institution_name,
+      hi.country_id::text as host_institution_country_id,
+      c.name as host_institution_country_name,
+      hi.city as host_institution_city,
 
-    a.current_state_id as current_state_id,
-    cs.name as current_state_name,
-    a.academic_year as academic_year,
-    a.expected_mobility_period as expected_mobility_period,
+      a.current_state_id::text as current_state_id,
+      cs.name as current_state_name,
+      a.academic_year as academic_year,
+      a.expected_mobility_period as expected_mobility_period,
 
-    COALESCE(
-      json_agg(
-        DISTINCT jsonb_build_object(
-          'version_id', v.version_id,
-          'version_number', v.version_number,
-          'is_active', v.is_active,
-          'foreign_course_id', m.foreign_course_id,
-          'cafoscari_course_id', m.cafoscari_course_id
+      COALESCE((
+        SELECT json_agg(
+          json_build_object(
+            'version_id', v.version_id,
+            'version_number', v.version_number,
+            'is_active', v.is_active,
+            'mapping', COALESCE((
+              SELECT json_agg(
+                json_build_object(
+                  'mapping_id', m.mapping_id,
+                  'foreign_course_id', m.foreign_course_id,
+                  'cafoscari_course_id', m.cafoscari_course_id
+                )
+              )
+              FROM application_version_mappings m
+              WHERE m.version_id = v.version_id
+            ), '[]'::json)
+          ) ORDER BY v.version_number ASC
         )
-      ) FILTER (WHERE v.version_id IS NOT NULL), 
-      '[]'::json
-    ) as versions
+        FROM application_versions v
+        WHERE v.application_id = a.application_id
+      ), '[]'::json) AS versions
     
     FROM applications a
     JOIN users s ON a.student_id = s.user_id
@@ -215,17 +225,7 @@ export const getReferentApplications = async (referentId: number): Promise<Appli
     JOIN universities hi ON a.host_institution_id = hi.university_id
     JOIN countries c ON hi.country_id = c.country_id
     JOIN application_states cs ON a.current_state_id = cs.state_id
-    LEFT JOIN application_versions v ON a.application_id = v.application_id
-    LEFT JOIN application_version_mappings m ON v.version_id = m.version_id
-    WHERE a.referent_id = $1
-
-    GROUP BY 
-      a.application_id, 
-      s.user_id, 
-      r.user_id, 
-      hi.university_id, 
-      c.country_id, 
-      cs.state_id;
+    WHERE a.referent_id = $1;
   `;
 
   const result = await pool.query(query, [referentId]);
@@ -251,47 +251,57 @@ export const getReferentApplications = async (referentId: number): Promise<Appli
     academic_year: row.academic_year,
     expected_mobility_period: row.expected_mobility_period,
     versions: row.versions
-  }))
+  }));
 };
 
 export const getTransitionApplications = async (transitionId: number): Promise<Application[]> => {
   const query = `
     SELECT
-    a.application_id as application_id,
-    
-    a.student_id as student_id,
-    s.name as student_name,
-    s.lastname as student_lastname,
-    s.email as student_email,
+      a.application_id::text as application_id,
+      
+      a.student_id::text as student_id,
+      s.name as student_name,
+      s.lastname as student_lastname,
+      s.email as student_email,
 
-    a.referent_id as referent_id,
-    r.name as referent_name,
-    r.lastname as referent_lastname,
-    r.email as referent_email,
+      a.referent_id::text as referent_id,
+      r.name as referent_name,
+      r.lastname as referent_lastname,
+      r.email as referent_email,
 
-    a.host_institution_id as host_institution_id,
-    hi.name as host_institution_name,
-    hi.country_id as host_institution_country_id,
-    c.name as host_institution_country_name,
-    hi.city as host_institution_city,
+      a.host_institution_id::text as host_institution_id,
+      hi.name as host_institution_name,
+      hi.country_id::text as host_institution_country_id,
+      c.name as host_institution_country_name,
+      hi.city as host_institution_city,
 
-    a.current_state_id as current_state_id,
-    cs.name as current_state_name,
-    a.academic_year as academic_year,
-    a.expected_mobility_period as expected_mobility_period,
+      a.current_state_id::text as current_state_id,
+      cs.name as current_state_name,
+      a.academic_year as academic_year,
+      a.expected_mobility_period as expected_mobility_period,
 
-    COALESCE(
-      json_agg(
-        DISTINCT jsonb_build_object(
-          'version_id', v.version_id,
-          'version_number', v.version_number,
-          'is_active', v.is_active,
-          'foreign_course_id', m.foreign_course_id,
-          'cafoscari_course_id', m.cafoscari_course_id
+      COALESCE((
+        SELECT json_agg(
+          json_build_object(
+            'version_id', v.version_id,
+            'version_number', v.version_number,
+            'is_active', v.is_active,
+            'mapping', COALESCE((
+              SELECT json_agg(
+                json_build_object(
+                  'mapping_id', m.mapping_id,
+                  'foreign_course_id', m.foreign_course_id,
+                  'cafoscari_course_id', m.cafoscari_course_id
+                )
+              )
+              FROM application_version_mappings m
+              WHERE m.version_id = v.version_id
+            ), '[]'::json)
+          ) ORDER BY v.version_number ASC
         )
-      ) FILTER (WHERE v.version_id IS NOT NULL), 
-      '[]'::json
-    ) as versions
+        FROM application_versions v
+        WHERE v.application_id = a.application_id
+      ), '[]'::json) AS versions
 
     FROM applications a
     JOIN users s ON a.student_id = s.user_id
@@ -300,17 +310,7 @@ export const getTransitionApplications = async (transitionId: number): Promise<A
     JOIN countries c ON hi.country_id = c.country_id
     JOIN application_states cs ON a.current_state_id = cs.state_id
     JOIN application_state_transitions ast ON a.application_id = ast.application_id
-    LEFT JOIN application_versions v ON a.application_id = v.application_id
-    LEFT JOIN application_version_mappings m ON v.version_id = m.version_id
-    WHERE ast.transition_id = $1
-
-    GROUP BY 
-      a.application_id, 
-      s.user_id, 
-      r.user_id, 
-      hi.university_id, 
-      c.country_id, 
-      cs.state_id;
+    WHERE ast.transition_id = $1;
   `;
 
   const result = await pool.query(query, [transitionId]);
@@ -342,9 +342,8 @@ export const getTransitionApplications = async (transitionId: number): Promise<A
     academic_year: row.academic_year,
     expected_mobility_period: row.expected_mobility_period,
     versions: row.versions
-  }))
+  }));
 };
-
 export const createFullApplication = async (
   student_id: number,
   referent_id: number,

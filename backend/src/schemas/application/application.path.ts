@@ -1,11 +1,12 @@
 import { registry, z } from "../../config/openapi";
 import { applicationBodySchema, UploadParamsSchema, referentApprovalSchema, updateApplicationSchema, updateApplicationBodySchema, studentParamsSchema, referentParamsSchema, transitionParamsSchema, applicationParamsSchema, updateApplicationMobilityDatesBodySchema } from "./application.schema";
 // GET REGISTRY
-registry.registerPath({
+registry.registerPath({ // GET applications
   method: "get",
   path: "/applications",
   summary: "Retrieve all study abroad applications",
-  description: "Fetches a list of all study abroad applications in the system.",
+  description:
+    "Fetches a list of all study abroad applications with nested student, referent, host institution, and version history details.",
   tags: ["Applications"],
   responses: {
     200: {
@@ -14,19 +15,52 @@ registry.registerPath({
         "application/json": {
           schema: z.object({
             status: z.string().openapi({ example: "success" }),
-            results: z.number().openapi({ example: 2 }),
+            results: z.number().openapi({ example: 1 }),
             data: z.object({
               applications: z.array(
                 z.object({
-                  application_id: z.number().openapi({ example: 1 }),
-                  student_id: z.number().openapi({ example: 20 }),
-                  referent_id: z.number().openapi({ example: 17 }),
-                  host_institution_id: z.number().openapi({ example: 3 }),
+                  application_id: z.string().openapi({ example: "6" }),
+                  student: z.object({
+                    student_id: z.string().openapi({ example: "20" }),
+                    name: z.string().openapi({ example: "Eren" }),
+                    lastname: z.string().openapi({ example: "Jaeger" }),
+                    email: z.string().email().openapi({ example: "eren.jaeger@example.com" }),
+                  }),
+                  referent: z.object({
+                    referent_id: z.string().openapi({ example: "22" }),
+                    name: z.string().openapi({ example: "Test" }),
+                    lastname: z.string().openapi({ example: "TESTREFERENT" }),
+                    email: z.string().email().openapi({ example: "Test@gmail.com" }),
+                  }),
+                  host_institution: z.object({
+                    host_institution_id: z.string().openapi({ example: "4" }),
+                    name: z.string().openapi({ example: "Technical University of Munich" }),
+                    country_id: z.string().openapi({ example: "3" }),
+                    country_name: z.string().openapi({ example: "Germany" }),
+                    city: z.string().openapi({ example: "Munich" }),
+                  }),
+                  current_state: z.object({
+                    current_state_id: z.string().openapi({ example: "4" }),
+                    name: z.string().openapi({ example: "mobility in progress" }),
+                  }),
                   academic_year: z.string().openapi({ example: "2025/26" }),
                   expected_mobility_period: z
                     .enum(["first_semester", "second_semester", "full_year"])
                     .openapi({ example: "first_semester" }),
-                  created_at: z.string().datetime().openapi({ example: "2026-07-28T10:00:00Z" }),
+                  versions: z.array(
+                    z.object({
+                      version_id: z.number().openapi({ example: 6 }),
+                      version_number: z.number().openapi({ example: 1 }),
+                      is_active: z.boolean().openapi({ example: false }),
+                      mapping: z.array(
+                        z.object({
+                          mapping_id: z.number().openapi({ example: 9 }),
+                          foreign_course_id: z.number().openapi({ example: 745 }),
+                          cafoscari_course_id: z.number().openapi({ example: 646 }),
+                        })
+                      ),
+                    })
+                  ),
                 })
               ),
             }),
@@ -47,11 +81,12 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registry.registerPath({ // GET applications by student
   method: "get",
   path: "/applications/student/{studentId}",
   summary: "Retrieve applications for a specific student",
-  description: "Fetches a list of all study abroad applications associated with a specific student.",
+  description:
+    "Fetches a list of all study abroad applications associated with a specific student, including referent, host institution, and version mapping details.",
   tags: ["Applications"],
   request: {
     params: studentParamsSchema,
@@ -63,19 +98,46 @@ registry.registerPath({
         "application/json": {
           schema: z.object({
             status: z.string().openapi({ example: "success" }),
-            results: z.number().openapi({ example: 2 }),
+            results: z.number().openapi({ example: 1 }),
             data: z.object({
               applications: z.array(
                 z.object({
-                  application_id: z.number().openapi({ example: 1 }),
-                  student_id: z.number().openapi({ example: 20 }),
-                  referent_id: z.number().openapi({ example: 17 }),
-                  host_institution_id: z.number().openapi({ example: 3 }),
+                  application_id: z.string().openapi({ example: "6" }),
+                  referent: z.object({
+                    referent_id: z.string().openapi({ example: "22" }),
+                    name: z.string().openapi({ example: "Test" }),
+                    lastname: z.string().openapi({ example: "TESTREFERENT" }),
+                    email: z.string().email().openapi({ example: "Test@gmail.com" }),
+                  }),
+                  host_institution: z.object({
+                    host_institution_id: z.string().openapi({ example: "4" }),
+                    name: z.string().openapi({ example: "Technical University of Munich" }),
+                    country_id: z.string().openapi({ example: "3" }),
+                    country_name: z.string().openapi({ example: "Germany" }),
+                    city: z.string().openapi({ example: "Munich" }),
+                  }),
+                  current_state: z.object({
+                    current_state_id: z.string().openapi({ example: "4" }),
+                    name: z.string().openapi({ example: "mobility in progress" }),
+                  }),
                   academic_year: z.string().openapi({ example: "2025/26" }),
                   expected_mobility_period: z
                     .enum(["first_semester", "second_semester", "full_year"])
                     .openapi({ example: "first_semester" }),
-                  created_at: z.string().datetime().openapi({ example: "2026-07-28T10:00:00Z" }),
+                  versions: z.array(
+                    z.object({
+                      version_id: z.number().openapi({ example: 6 }),
+                      version_number: z.number().openapi({ example: 1 }),
+                      is_active: z.boolean().openapi({ example: false }),
+                      mapping: z.array(
+                        z.object({
+                          mapping_id: z.number().openapi({ example: 9 }),
+                          foreign_course_id: z.number().openapi({ example: 745 }),
+                          cafoscari_course_id: z.number().openapi({ example: 646 }),
+                        })
+                      ),
+                    })
+                  ),
                 })
               ),
             }),
@@ -106,11 +168,12 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registry.registerPath({ // GET applications by referent
   method: "get",
   path: "/applications/referent/{referentId}",
   summary: "Retrieve applications for a specific referent",
-  description: "Fetches a list of all study abroad applications associated with a specific academic referent.",
+  description:
+    "Fetches a list of all study abroad applications associated with a specific academic referent, including student, host institution, and version mapping details.",
   tags: ["Applications"],
   request: {
     params: referentParamsSchema,
@@ -122,15 +185,46 @@ registry.registerPath({
         "application/json": {
           schema: z.object({
             status: z.string().openapi({ example: "success" }),
-            results: z.number().openapi({ example: 2 }),
+            results: z.number().openapi({ example: 1 }),
             data: z.object({
               applications: z.array(
                 z.object({
-                  application_id: z.number().openapi({ example: 1 }),
-                  student_id: z.number().openapi({ example: 20 }),
-                  referent_id: z.number().openapi({ example: 17 }),
-                  host_institution_id: z.number().openapi({ example: 3 }),
-                  academic_year: z.string().openapi({ example: "2025/26" }),  
+                  application_id: z.string().openapi({ example: "6" }),
+                  student: z.object({
+                    student_id: z.string().openapi({ example: "20" }),
+                    name: z.string().openapi({ example: "Eren" }),
+                    lastname: z.string().openapi({ example: "Jaeger" }),
+                    email: z.string().email().openapi({ example: "eren.jaeger@example.com" }),
+                  }),
+                  host_institution: z.object({
+                    host_institution_id: z.string().openapi({ example: "4" }),
+                    name: z.string().openapi({ example: "Technical University of Munich" }),
+                    country_id: z.string().openapi({ example: "3" }),
+                    country_name: z.string().openapi({ example: "Germany" }),
+                    city: z.string().openapi({ example: "Munich" }),
+                  }),
+                  current_state: z.object({
+                    current_state_id: z.string().openapi({ example: "4" }),
+                    name: z.string().openapi({ example: "mobility in progress" }),
+                  }),
+                  academic_year: z.string().openapi({ example: "2025/26" }),
+                  expected_mobility_period: z
+                    .enum(["first_semester", "second_semester", "full_year"])
+                    .openapi({ example: "first_semester" }),
+                  versions: z.array(
+                    z.object({
+                      version_id: z.number().openapi({ example: 6 }),
+                      version_number: z.number().openapi({ example: 1 }),
+                      is_active: z.boolean().openapi({ example: false }),
+                      mapping: z.array(
+                        z.object({
+                          mapping_id: z.number().openapi({ example: 9 }),
+                          foreign_course_id: z.number().openapi({ example: 745 }),
+                          cafoscari_course_id: z.number().openapi({ example: 646 }),
+                        })
+                      ),
+                    })
+                  ),
                 })
               ),
             }),
@@ -143,7 +237,7 @@ registry.registerPath({
       content: {
         "application/json": {
           schema: z.object({
-            message: z.string().openapi({ example: "Referent with ID 17 does not exist." }),
+            message: z.string().openapi({ example: "Referent with ID 22 does not exist." }),
           }),
         },
       },
@@ -161,11 +255,12 @@ registry.registerPath({
   },
 });
 
-registry.registerPath({
+registry.registerPath({ // GET applications by transition
   method: "get",
   path: "/applications/transition/{transitionId}",
   summary: "Retrieve applications for a specific transition",
-  description: "Fetches a list of all study abroad applications associated with a specific transition.",
+  description:
+    "Fetches a list of all study abroad applications associated with a specific transition state, including student, referent, host institution, and version mapping details.",
   tags: ["Applications"],
   request: {
     params: transitionParamsSchema,
@@ -177,15 +272,52 @@ registry.registerPath({
         "application/json": {
           schema: z.object({
             status: z.string().openapi({ example: "success" }),
-            results: z.number().openapi({ example: 2 }),
+            results: z.number().openapi({ example: 1 }),
             data: z.object({
               applications: z.array(
                 z.object({
-                  application_id: z.number().openapi({ example: 1 }),
-                  student_id: z.number().openapi({ example: 20 }),
-                  referent_id: z.number().openapi({ example: 17 }),
-                  host_institution_id: z.number().openapi({ example: 3 }),
-                  academic_year: z.string().openapi({ example: "2025/26" }),  
+                  application_id: z.string().openapi({ example: "6" }),
+                  student: z.object({
+                    student_id: z.string().openapi({ example: "20" }),
+                    name: z.string().openapi({ example: "Eren" }),
+                    lastname: z.string().openapi({ example: "Jaeger" }),
+                    email: z.string().email().openapi({ example: "eren.jaeger@example.com" }),
+                  }),
+                  referent: z.object({
+                    referent_id: z.string().openapi({ example: "22" }),
+                    name: z.string().openapi({ example: "Test" }),
+                    lastname: z.string().openapi({ example: "TESTREFERENT" }),
+                    email: z.string().email().openapi({ example: "Test@gmail.com" }),
+                  }),
+                  host_institution: z.object({
+                    host_institution_id: z.string().openapi({ example: "4" }),
+                    name: z.string().openapi({ example: "Technical University of Munich" }),
+                    country_id: z.string().openapi({ example: "3" }),
+                    country_name: z.string().openapi({ example: "Germany" }),
+                    city: z.string().openapi({ example: "Munich" }),
+                  }),
+                  current_state: z.object({
+                    current_state_id: z.string().openapi({ example: "4" }),
+                    name: z.string().openapi({ example: "mobility in progress" }),
+                  }),
+                  academic_year: z.string().openapi({ example: "2025/26" }),
+                  expected_mobility_period: z
+                    .enum(["first_semester", "second_semester", "full_year"])
+                    .openapi({ example: "first_semester" }),
+                  versions: z.array(
+                    z.object({
+                      version_id: z.number().openapi({ example: 6 }),
+                      version_number: z.number().openapi({ example: 1 }),
+                      is_active: z.boolean().openapi({ example: false }),
+                      mapping: z.array(
+                        z.object({
+                          mapping_id: z.number().openapi({ example: 9 }),
+                          foreign_course_id: z.number().openapi({ example: 745 }),
+                          cafoscari_course_id: z.number().openapi({ example: 646 }),
+                        })
+                      ),
+                    })
+                  ),
                 })
               ),
             }),
@@ -215,7 +347,6 @@ registry.registerPath({
     },
   },
 });
-
 
 // POST REGISTRY
 registry.registerPath({
