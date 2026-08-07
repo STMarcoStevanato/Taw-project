@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { UploadLearningAgreement, getDocumentRecordsFile, getDocumentFileService, UploadTraqnscriptOfRecords } from "../services/document.service";
+import { UploadLearningAgreement, getDocumentRecordsFile, getDocumentFileService, UploadTraqnscriptOfRecords, deleteTranscriptRecordsByIdService } from "../services/document.service";
 import { generateRecordsFile } from "../services/pdfService";
 
 export const uploadLearningAgreement = async (
@@ -96,3 +96,23 @@ export const uploadRecordsFile = async (
         next(err);
     }
 };
+
+export const deleteTranscriptRecordsById = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const versionId = Number(req.params.versionId);
+        const documentId = Number(req.params.documentId);
+
+        await deleteTranscriptRecordsByIdService(versionId, documentId);
+
+        return res.status(204).json({
+            status: "success",
+            message: `Document with ID ${documentId} deleted successfully.`,
+        });
+    } catch (err) {
+        next(err);
+    }
+}

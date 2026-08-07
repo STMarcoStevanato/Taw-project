@@ -229,3 +229,33 @@ registry.registerPath({
     },
   },
 });
+
+registry.registerPath({
+  method: "delete",
+  path: "/versions/{versionId}/documents/{documentId}",
+  summary: "Delete a Transcript of Records document",
+  description: "Deletes the specified Transcript of Records document for the given application version.",
+  tags: ["Documents"],
+  security: [
+    {
+      XSRFToken: [],
+    },
+  ],
+  request: {
+    params: GetDocumentParamsSchema
+  },
+  responses: {
+    204: {
+      description: "Document deleted successfully.",
+    },
+    400: {
+      description: "Bad Request - Invalid ID parameters.",
+    },
+    404: {
+      description: "Not Found - Document not found.",
+    },
+    500: {
+      description: "Internal Server Error - Error deleting the document.",
+    },
+  },
+});

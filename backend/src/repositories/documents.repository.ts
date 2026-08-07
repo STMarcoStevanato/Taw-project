@@ -115,3 +115,16 @@ export const getDocumentByVersionAndType = async (
     return result.rows[0] || null;
 };
 
+export const deleteTranscriptRecordsById = async (
+    version_id: number,
+    document_id: number
+) => {
+    const query = `
+        DELETE FROM documents
+        WHERE version_id = $1 AND document_id = $2
+        RETURNING *
+    `;
+    const result = await pool.query(query, [version_id, document_id]);
+    return result.rows[0] || null;
+}
+

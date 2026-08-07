@@ -134,7 +134,8 @@ export const referentApproval = async (
     if (!(
         Number(application.current_state_id) === STATES.AWAITING_LEARNING_AGREEMENT_APPROVAL_BY_REFERENT ||
         Number(application.current_state_id) === STATES.REJECTED_BY_REFERENT ||
-        Number(application.current_state_id) === STATES.AWAITING_CHANGES_APPROVAL
+        Number(application.current_state_id) === STATES.AWAITING_CHANGES_APPROVAL || 
+        Number(application.current_state_id) === STATES.WAITING_EXAM_SCORE_APPROVAL_BY_REFERENT
     )) {
         const error = new Error('Application is not in a valid state for approval') as any;
         error.statusCode = 400;
@@ -165,9 +166,15 @@ export const referentApproval = async (
         reason = "Approval request accepted";
     }
 
-    const document = await getDocumentByVersionAndType(version_id, "LEARNING_AGREEMENT");
+    let typeDocument: string;
+    if (Number(application.current_state_id) === STATES.WAITING_EXAM_SCORE_APPROVAL_BY_REFERENT) 
+        typeDocument = "TRANSCRIPT_OF_RECORDS";
+     else 
+        typeDocument = "LEARNING_AGREEMENT";
+
+    const document = await getDocumentByVersionAndType(version_id, typeDocument);
     if (!document) {
-        const error = new Error(`Learning Agreement document for version ${version_id} does not exist`) as any;
+        const error = new Error(`${typeDocument} document for version ${version_id} does not exist`) as any;
         error.statusCode = 404;
         throw error;
     }
@@ -178,6 +185,10 @@ export const referentApproval = async (
     
     if (Number(application.current_state_id) === STATES.AWAITING_CHANGES_APPROVAL) 
         transactionNewState = STATES.MOBILITY_IN_PROGRESS;
+    else if (Number(application.current_state_id) === STATES.WAITING_EXAM_SCORE_APPROVAL_BY_REFERENT){
+        if (is_approved) transactionNewState = STATES.WAITING_EXAM_SCORE_APPROVAL_BY_STAFF;
+        else transactionNewState = STATES.MOBILITY_IN_PROGRESS;
+    }
     else {
         if (is_approved) transactionNewState = STATES.AWAITING_LEARNING_AGREEMENT_APPROVAL_BY_STAFF;
         else transactionNewState = STATES.REJECTED_BY_REFERENT;
@@ -283,7 +294,10 @@ export const staffApproval = async (
         throw error;
     }
 
-    if (Number(application.current_state_id) !== STATES.AWAITING_LEARNING_AGREEMENT_APPROVAL_BY_STAFF) {
+    if (!(
+        Number(application.current_state_id) === STATES.AWAITING_LEARNING_AGREEMENT_APPROVAL_BY_STAFF ||
+        Number(application.current_state_id) === STATES.WAITING_EXAM_SCORE_APPROVAL_BY_STAFF
+    )) {
         const error = new Error('Application is not in a valid state for staff approval') as any;
         error.statusCode = 400;
         throw error;
@@ -309,9 +323,19 @@ export const staffApproval = async (
         throw error; 
     }
 
-    const currentState = application.current_state_id;
-    const newState = STATES.PRE_DEPARTURE_COMPLETED;
-    const reason = "Learning Agreement approved by staff";
+    const currentState = Number(application.current_state_id);
+    let newState: number;
+    let reason: string;
+
+    if (currentState === STATES.AWAITING_LEARNING_AGREEMENT_APPROVAL_BY_STAFF) {
+        newState = STATES.PRE_DEPARTURE_COMPLETED;
+        reason = "Learning Agreement approved by staff";
+    } else {
+        newState = STATES.CLOSED;
+        reason = "Transcript of Records approved by staff";
+    }
+
+    
 
     const staffApprovalResult = await applicationRepository.postStaffApproval(
         application_id,

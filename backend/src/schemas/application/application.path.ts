@@ -625,7 +625,7 @@ registry.registerPath({
   path: "/applications/{applicationId}/version/{versionId}/staff-approval",
   summary: "Approval of the application version by the staff",
   description:
-    "Allows a staff member to approve an active version of the Learning Agreement and transition the application state to PRE_DEPARTURE_COMPLETED.",
+    "Allows a staff member to approve an active version of the Learning Agreement or transcript of records, and transition the application state to PRE_DEPARTURE_COMPLETED. or CLOSED.",
   tags: ["Applications"],
   security: [
     {

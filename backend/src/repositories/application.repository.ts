@@ -495,7 +495,7 @@ export const postReferentApproval = async (
       `;
       await client.query(activateNewVersionQuery, [version_id, application_id]);
 
-    } else {
+    } else if (Number(current_state_id) !== STATES.WAITING_EXAM_SCORE_APPROVAL_BY_REFERENT) {
       // 1. in case of rejection, delete the rejected version from the database
       const deleteRejectedVersionQuery = `
         DELETE FROM application_versions

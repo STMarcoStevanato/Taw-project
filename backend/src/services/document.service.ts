@@ -2,7 +2,7 @@ import path from "path";
 import fs from "fs";
 import { getApplicationVersionById } from "../repositories/version.repository";
 import { insertNewTransaction } from "../repositories/transaction.repository";
-import { insertLearningAgreement, getDocumentByVersionAndType } from "../repositories/documents.repository";
+import { insertLearningAgreement, getDocumentByVersionAndType, deleteTranscriptRecordsById } from "../repositories/documents.repository";
 import { getDocumentByDocumentId  } from "../repositories/documents.repository";
 import { getApplicationById } from "../repositories/application.repository";
 import { getMappingByVersionId } from "../repositories/exams.repository";
@@ -37,6 +37,7 @@ export const UploadLearningAgreement = async (
         }
 
         if (!(
+            Number(application.current_state_id) === STATES.CREATED ||
             Number(application.current_state_id) === STATES.AWAITING_LEARNING_AGREEMENT_APPROVAL_BY_REFERENT ||
             Number(application.current_state_id) === STATES.AWAITING_CHANGES_APPROVAL
             )
@@ -47,7 +48,14 @@ export const UploadLearningAgreement = async (
         }
 
         const currentState = application.current_state_id;
-        const newState = Number(application.current_state_id);
+        let newState: number;
+
+        if (Number(application.current_state_id) === STATES.CREATED) 
+            newState = STATES.AWAITING_LEARNING_AGREEMENT_APPROVAL_BY_REFERENT;
+        else 
+            newState = Number(application.current_state_id);
+
+
         const reason = "Learning Agreement uploaded";
 
         const relativeFilePath = `learning_agreements/${file.filename}`;
@@ -176,7 +184,7 @@ export const getDocumentRecordsFile = async (
     };
 };
 
-export const UploadTraqnscriptOfRecords = async (
+export const UploadTraqnscriptOfRecords = async (  //POST
     version_id: number,
     file: Express.Multer.File,
     user_id : number
@@ -216,7 +224,7 @@ export const UploadTraqnscriptOfRecords = async (
        }
 
        const currentState = application.current_state_id;
-       const newState = STATES.WAITING_EXAM_SCORE_APPROVAL;
+       const newState = STATES.WAITING_EXAM_SCORE_APPROVAL_BY_REFERENT;
        const reason = "Transcript of Records uploaded";
 
        const relativeFilePath = `transcripts_of_records/${file.filename}`;
@@ -237,3 +245,33 @@ export const UploadTraqnscriptOfRecords = async (
 
        return newTranscriptOfRecords;
 };
+
+export const deleteTranscriptRecordsByIdService = async (
+    version_id: number,
+    document_id: number
+) => {
+    const document = await getDocumentByDocumentId(document_id);
+    if (!document) {
+        const error = new Error("Document not found") as any;
+        error.statusCode = 404;
+        throw error;
+    }
+
+    if (Number(document.version_id) !== Number(version_id)) {
+        const error = new Error("Document does not belong to the specified version") as any;
+        error.statusCode = 400;
+        throw error;
+    }
+
+    if (document.document_type !== "TRANSCRIPT_OF_RECORDS") {
+        const error = new Error("Document is not a Transcript of Records") as any;
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const absolutePath = path.join(process.cwd(), "uploads", document.file_path);
+
+    if (fs.existsSync(absolutePath)) fs.unlinkSync(absolutePath);
+    const result = await deleteTranscriptRecordsById(version_id, document_id);
+    return result;
+}
