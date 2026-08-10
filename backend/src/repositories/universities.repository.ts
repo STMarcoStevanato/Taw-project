@@ -35,13 +35,13 @@ export const getUniversityCourses = async (university_id: number): Promise<Cours
     WHERE uc.university_id = $1
   `;
   
-  const result = await pool.query(query);
+  const result = await pool.query(query, [university_id]);
 
   return result.rows.map(row => ({
     course_id: row.course_id,
     code: row.course_code,
     name: row.course_name,
-    credits: row.course_credits
+    credits: row.credits 
   }));
 }
 
