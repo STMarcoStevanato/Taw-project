@@ -1,0 +1,99 @@
+<h1>Create New Application</h1>
+<p>Create a new application with exam mappings using searchable course names.</p>
+
+<div class="dashboard-card">
+  <p class="dashboard-card-title">Create a new application</p>
+  <p>Use the modal form to select referent, host university, and exam mappings by course name.</p>
+  <button class="submit secondary" type="button" (click)="openCreateApplicationModal()">Open create modal</button>
+
+  @if (createApplicationSuccess()) {
+    <p class="feedback">{{ createApplicationSuccess() }}</p>
+  }
+</div>
+
+@if (createModalOpen()) {
+  <div class="modal-backdrop" (click)="closeCreateApplicationModal()"></div>
+  <section class="create-modal create-application-modal" role="dialog" aria-label="Create application modal" aria-modal="true">
+    <header class="modal-head">
+      <h2>Create Application</h2>
+      <button type="button" class="modal-close" (click)="closeCreateApplicationModal()">X</button>
+    </header>
+
+    <form class="modal-form" [formGroup]="createApplicationForm" (ngSubmit)="submitCreateApplication()" novalidate>
+      <label for="create-referent">Referent</label>
+      <select id="create-referent" formControlName="referent_id">
+        <option [ngValue]="null">Select referent</option>
+        @for (referent of referentOptions(); track referent.user_id ?? referent.referent_id ?? referent.email) {
+          <option [ngValue]="referent.user_id ?? referent.referent_id">{{ referent.name }} {{ referent.lastname }} - {{ referent.email }}</option>
+        }
+      </select>
+
+      <label for="create-university">Host university</label>
+      <select id="create-university" formControlName="host_institution_id" (change)="onCreateHostUniversityChanged()">
+        <option [ngValue]="null">Select university</option>
+        @for (university of universityOptions(); track university.university_id ?? university.host_institution_id ?? university.name) {
+          <option [ngValue]="university.university_id ?? university.host_institution_id">{{ university.name }}{{ university.city ? ' - ' + university.city : '' }}</option>
+        }
+      </select>
+
+      <label for="create-academic-year">Academic year (AAAA/AA)</label>
+      <select id="create-academic-year" formControlName="academic_year">
+        <option value="">Select academic year</option>
+        @for (year of academicYearOptions; track year) {
+          <option [value]="year">{{ year }}</option>
+        }
+      </select>
+
+      <label for="create-period">Mobility period</label>
+      <select id="create-period" formControlName="expected_mobility_period">
+        <option value="first_semester">First semester</option>
+        <option value="second_semester">Second semester</option>
+        <option value="full_year">Full year</option>
+      </select>
+
+      <div class="mappings-head">
+        <p>Course mappings</p>
+        <button type="button" class="add-mapping" (click)="addMappingRow()">Add mapping</button>
+      </div>
+
+      <div formArrayName="mappings" class="mapping-list">
+        @for (mappingGroup of mappingsFormArray.controls; let i = $index; track i) {
+          <div class="mapping-row" [formGroupName]="i">
+            <select formControlName="foreign_course_id">
+              <option [ngValue]="null">Select foreign exam</option>
+              @for (course of createModalHostUniversityCourses(); track course.course_id) {
+                <option
+                  [ngValue]="course.course_id"
+                  [disabled]="getSelectedCafoscariCourseId(i) === course.course_id"
+                >
+                  {{ formatCourseOption(course) }}
+                </option>
+              }
+            </select>
+            <select formControlName="cafoscari_course_id">
+              <option [ngValue]="null">Select Ca' Foscari exam</option>
+              @for (course of cafoscariCourses(); track course.course_id) {
+                <option
+                  [ngValue]="course.course_id"
+                  [disabled]="getSelectedForeignCourseId(i) === course.course_id"
+                >
+                  {{ formatCourseOption(course) }}
+                </option>
+              }
+            </select>
+            <button type="button" class="remove-mapping" (click)="removeMappingRow(i)">Remove</button>
+          </div>
+        }
+      </div>
+
+      @if (createApplicationError()) {
+        <p class="modal-error">{{ createApplicationError() }}</p>
+      }
+
+      <div class="modal-actions">
+        <button type="button" class="submit secondary" (click)="closeCreateApplicationModal()">Cancel</button>
+        <button type="submit" class="submit" [disabled]="createApplicationLoading()">{{ createApplicationLoading() ? 'Creating...' : 'Create application' }}</button>
+      </div>
+    </form>
+  </section>
+}

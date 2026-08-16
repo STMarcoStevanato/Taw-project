@@ -1,0 +1,80 @@
+<div class="page-shell">
+  <header class="topbar">
+    <a class="brand" routerLink="/" aria-label="Overseas portal home">Overseas Portal</a>
+
+    <div class="nav-cluster">
+      <div class="session-actions" aria-label="Active session actions">
+        <button class="user-pill trigger" type="button" (click)="toggleProfileMenu()" [attr.aria-expanded]="profileMenuOpen()">
+          <span>{{ currentUser()?.name }} {{ currentUser()?.lastname }}</span>
+          <span class="chevron">{{ profileMenuOpen() ? '▲' : '▼' }}</span>
+        </button>
+
+        @if (profileMenuOpen()) {
+          <div class="profile-menu" role="menu" aria-label="Profile menu">
+            <p class="menu-name">{{ currentUser()?.name }} {{ currentUser()?.lastname }}</p>
+            <p class="menu-email">{{ currentUser()?.email }}</p>
+            <p class="menu-role">Role: {{ prettifyRole(currentUser()?.role) }}</p>
+            <button type="button" class="menu-action" (click)="navigateToLanding()">Back to landing</button>
+            <button type="button" class="menu-action danger" (click)="submitLogout()" [disabled]="loading()">
+              {{ loading() ? 'Signing out...' : 'Logout' }}
+            </button>
+          </div>
+          <button type="button" class="menu-backdrop" aria-label="Close menu" (click)="closeProfileMenu()"></button>
+        }
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard-page">
+    <section class="dashboard-shell" [class.menu-collapsed]="dashboardMenuCollapsed()">
+      <aside class="dashboard-sidebar" aria-label="Dashboard menu" [class.collapsed]="dashboardMenuCollapsed()">
+        <div class="sidebar-head">
+          @if (!dashboardMenuCollapsed()) {
+            <p class="sidebar-title">Menu</p>
+          }
+          <button
+            class="sidebar-toggle"
+            type="button"
+            (click)="toggleDashboardMenu()"
+            [attr.aria-label]="dashboardMenuCollapsed() ? 'Expand menu' : 'Collapse menu'"
+          >
+            {{ dashboardMenuCollapsed() ? '>>' : '<<' }}
+          </button>
+        </div>
+
+        <nav class="sidebar-nav">
+          @for (item of dashboardMenuItems(); track item.key) {
+            <button
+              type="button"
+              class="sidebar-item"
+              [class.active]="dashboardAction() === item.key"
+              [attr.title]="dashboardMenuCollapsed() ? item.label : null"
+              (click)="setDashboardAction(item.key)"
+            >
+              <span class="item-icon" aria-hidden="true">{{ item.icon }}</span>
+              @if (!dashboardMenuCollapsed()) {
+                <span class="item-label">{{ item.label }}</span>
+              }
+            </button>
+          }
+        </nav>
+      </aside>
+
+      <section class="dashboard-hero">
+        <p class="dashboard-tag">Dashboard</p>
+
+        @if (dashboardAction() === 'student-view') {
+          <app-student-applications-page></app-student-applications-page>
+        } @else if (dashboardAction() === 'student-create') {
+          <app-student-create-application-page></app-student-create-application-page>
+        } @else {
+          <app-referent-staff-applications-page></app-referent-staff-applications-page>
+        }
+      </section>
+    </section>
+  </main>
+
+  <footer class="footnote">
+    <span>localhost:4200 -> localhost:3000 API</span>
+  </footer>
+</div>
