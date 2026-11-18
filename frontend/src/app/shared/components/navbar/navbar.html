@@ -1,0 +1,36 @@
+
+<nav class="navbar">
+  <a routerLink="/" class="logo">MyGestionale</a>
+
+  <div class="nav-actions">
+
+    @if (authService.currentUser()) {
+
+      <p-button
+        label="Logout"
+        icon="pi pi-sign-out"
+        [loading]="loggingOut()"
+        (onClick)="logout()"
+      />
+
+    } @else {
+
+      <p-button
+        label="Accedi"
+        [outlined]="true"
+        routerLink="/login"
+      />
+
+      <p-button
+        label="Registrati"
+        routerLink="/register"
+      />
+
+    }
+
+  </div>
+</nav>
+
+@if (logoutError()) {
+  <p role="alert">{{ logoutError() }}</p>
+}

@@ -127,3 +127,84 @@ registry.registerPath({
     },
   },
 });
+
+registry.registerPath({
+  method: "get",
+  path: "/auth/me",
+  summary: "Get authenticated user",
+  description:
+    "Retrieves the profile information of the currently authenticated user using the JWT stored in the HttpOnly cookie (`access_token`).",
+  tags: ["Auth"],
+
+  security: [
+    {
+      XSRFToken: [],
+    },
+  ],
+
+  responses: {
+    200: {
+      description: "Authenticated user retrieved successfully.",
+      content: {
+        "application/json": {
+          schema: z.object({
+            user: z.object({
+              user_id: z.number().openapi({
+                example: 20,
+              }),
+              name: z.string().openapi({
+                example: "Eren",
+              }),
+              lastname: z.string().openapi({
+                example: "Jaeger",
+              }),
+              email: z.string().email().openapi({
+                example: "eren.jaeger@example.com",
+              }),
+            }),
+          }),
+        },
+      },
+    },
+
+    401: {
+      description:
+        "Unauthorized. Authentication token is missing, invalid, or expired.",
+      content: {
+        "application/json": {
+          schema: z.object({
+            message: z.string().openapi({
+              example: "Unauthorized: Missing authentication token",
+            }),
+          }),
+        },
+      },
+    },
+
+    404: {
+      description: "User not found.",
+      content: {
+        "application/json": {
+          schema: z.object({
+            message: z.string().openapi({
+              example: "User not found",
+            }),
+          }),
+        },
+      },
+    },
+
+    500: {
+      description: "Internal server error.",
+      content: {
+        "application/json": {
+          schema: z.object({
+            message: z.string().openapi({
+              example: "Internal server error",
+            }),
+          }),
+        },
+      },
+    },
+  },
+});

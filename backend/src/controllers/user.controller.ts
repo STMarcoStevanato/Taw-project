@@ -2,7 +2,12 @@ import { Request, Response, NextFunction } from "express";
 import * as userService from "../services/user.service";
 import { CreateUserDTO } from "../schemas/user/user.schema";
 import { LoginDTO } from "../schemas/auth/auth.schema";
+import { UserWithRole } from "../types/user";
 import crypto from "crypto";
+
+interface AuthenticatedRequest extends Request {
+  user?: UserWithRole;
+}
 
 export const createUser = async (
   req: Request<{}, {}, CreateUserDTO>,
@@ -39,7 +44,7 @@ export const login = async (
     });
 
     res.cookie("XSRF-TOKEN", csrfToken, {
-      httpOnly: false, 
+      httpOnly: false,      //allows the front end to read the token and send it
       secure: true,   
       sameSite: "lax",
       maxAge: 2 * 60 * 60 * 1000, // 2h
@@ -55,26 +60,51 @@ export const login = async (
   }
 };
 
-export const logout = async (req: Request, res: Response, next: NextFunction) => {
+export const logout = (
+  req: Request,
+  res: Response
+) => {
+  const cookieOptions = {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax" as const,
+    path: "/"
+  };
+
+  res.clearCookie("access_token", cookieOptions);
+
+  res.clearCookie("XSRF-TOKEN", {
+    ...cookieOptions,
+    httpOnly: false
+  });
+
+  return res.status(200).json({
+    status: "success",
+    message: "Logged out successfully"
+  });
+};
+
+export const getMe = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   try {
+    const authReq = req as AuthenticatedRequest;
 
-    res.clearCookie("access_token", {
-      httpOnly: true,
-      secure: true,
-      sameSite: "lax"
-    });
+    const userId = authReq.user?.user_id;
 
-    res.clearCookie("XSRF-TOKEN", {
-      httpOnly: false,
-      secure: true,
-      sameSite: "lax"
-    });
+    if (!userId) {
+      res.status(401).json({
+        message: "Unauthorized"
+      });
+      return;
+    }
 
-    return res.status(200).json({ 
-      status: "success",
-      message: "Logged out successfully" 
-    });
-    
+    const user = await userService.getUserById(userId);
+
+    res.status(200).json({ user });
+
   } catch (err) {
     next(err);
   }

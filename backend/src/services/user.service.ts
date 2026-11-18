@@ -75,3 +75,7 @@ export const login = async (email: string, password: string): Promise<LoginRespo
 export const getReferents = async (): Promise<UserWithRole[]> => {
   return await userRepository.getReferents();
 };
+
+export const getUserById = async (user_id: number) => {
+  return await userRepository.getUserById(user_id);
+};
