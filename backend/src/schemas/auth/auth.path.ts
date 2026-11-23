@@ -161,6 +161,9 @@ registry.registerPath({
               email: z.string().email().openapi({
                 example: "eren.jaeger@example.com",
               }),
+              role: z.string().openapi({
+                example: "Student",
+              })
             }),
           }),
         },

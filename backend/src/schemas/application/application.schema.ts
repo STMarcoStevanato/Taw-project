@@ -68,7 +68,7 @@ const courseMappingSchema = z
       path: ["foreign_course_id"], 
     }
   )
-  .refine(
+  /*.refine(
     (data) => {
       if (data.foreign_course_id != null && data.cafoscari_course_id != null) {
         return data.foreign_course_id !== data.cafoscari_course_id;
@@ -80,7 +80,7 @@ const courseMappingSchema = z
         "foreign_course_id and cafoscari_course_id cannot have the same ID.",
       path: ["cafoscari_course_id"], 
     }
-  );
+  );*/
 
 export const applicationBodySchema = registry.register(
   "ApplicationRequest",

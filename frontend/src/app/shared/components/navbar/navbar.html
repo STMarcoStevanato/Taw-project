@@ -1,10 +1,15 @@
 
 <nav class="navbar">
-  <a routerLink="/" class="logo">MyGestionale</a>
+  <a routerLink="/" class="logo">Overseas</a>
 
   <div class="nav-actions">
 
     @if (authService.currentUser()) {
+
+      <p-button
+        label="Dashboard"
+        routerLink="/dashboard"
+      />
 
       <p-button
         label="Logout"

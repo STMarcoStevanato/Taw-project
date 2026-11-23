@@ -3,7 +3,7 @@ import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 
-import { AuthService } from '../../../features/auth/auth';
+import { AuthService } from '../../../features/auth/auth.service';
 
 @Component({
   selector: 'app-navbar',

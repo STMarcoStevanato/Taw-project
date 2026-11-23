@@ -1,0 +1,95 @@
+
+<div class="register-page">
+  <p-card class="register-card">
+    <div class="register-header">
+      <h1>Crea il tuo account</h1>
+    </div>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+
+      <div class="form-row">
+        <div class="field">
+          <label for="name">Nome</label>
+          <input
+            pInputText
+            id="name"
+            formControlName="name"
+            placeholder="Il tuo nome"
+          />
+        </div>
+
+        <div class="field">
+          <label for="lastname">Cognome</label>
+          <input
+            pInputText
+            id="lastname"
+            formControlName="lastname"
+            placeholder="Il tuo cognome"
+          />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="email">Email</label>
+        <input
+          pInputText
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="nome@universita.it"
+        />
+      </div>
+
+      <div class="field">
+        <label for="password1">Password</label>
+        <input
+          pInputText
+          id="password1"
+          type="password"
+          formControlName="password1"
+        />
+      </div>
+
+      <div class="field">
+        <label for="password2">Conferma password</label>
+        <input
+          pInputText
+          id="password2"
+          type="password"
+          formControlName="password2"
+        />
+      </div>
+
+      <div class="field">
+        <label for="role">Ruolo</label>
+        <select id="role" formControlName="role">
+          <option [ngValue]="1">Studente</option>
+          <option [ngValue]="2">Docente</option>
+          <option [ngValue]="3">Amministratore</option>
+        </select>
+      </div>
+
+      @if (errorMessage()) {
+        <p class="error-message" role="alert">
+          {{ errorMessage() }}
+        </p>
+      }
+
+      <p-button
+        type="submit"
+        label="Crea account"
+        icon="pi pi-user-plus"
+        [loading]="loading()"
+        [disabled]="registerForm.invalid || loading()"
+        styleClass="submit-button"
+      />
+
+      <p-button
+        label="Accedi"
+        [outlined]="true"
+        routerLink="/login"
+      />
+
+    </form>
+  </p-card>
+</div>

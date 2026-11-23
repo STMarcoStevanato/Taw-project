@@ -1,0 +1,130 @@
+
+<p-dialog
+  header="Dettagli Application"
+  [(visible)]="visible"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: 'min(95vw, 800px)' }"
+>
+
+  @if (application(); as app) {
+
+    <div class="details-content">
+
+      <div class="details-header">
+        <span>Application #{{ app.application_id }}</span>
+
+        <p-tag
+          [value]="app.current_state.name"
+          severity="info"
+        />
+      </div>
+
+      <p-divider />
+
+      <h3>Informazioni generali</h3>
+
+      <div class="details-grid">
+
+        <div>
+          <span class="detail-label">Università ospitante</span>
+          <strong>{{ app.host_institution.name }}</strong>
+        </div>
+
+        <div>
+          <span class="detail-label">Destinazione</span>
+          <strong>
+            {{ app.host_institution.city }},
+            {{ app.host_institution.country_name }}
+          </strong>
+        </div>
+
+        <div>
+          <span class="detail-label">Referente</span>
+          <strong>
+            {{ app.referent.name }}
+            {{ app.referent.lastname }}
+          </strong>
+        </div>
+
+        <div>
+          <span class="detail-label">Email referente</span>
+          <strong>{{ app.referent.email }}</strong>
+        </div>
+
+        <div>
+          <span class="detail-label">Anno accademico</span>
+          <strong>{{ app.academic_year }}</strong>
+        </div>
+
+        <div>
+          <span class="detail-label">Periodo di mobilità</span>
+          <strong>
+            {{ formatPeriod(app.expected_mobility_period) }}
+          </strong>
+        </div>
+
+        <div>
+            <span class="detail-label">Data di arrivo</span>
+            <strong>{{ formatDate(app.arrival_date) }}</strong>
+          </div>
+          
+          <div>
+            <span class="detail-label">Data di partenza</span>
+            <strong>{{ formatDate(app.departure_date) }}</strong>
+          </div>
+
+      </div>
+
+      <p-divider />
+
+      <h3>Mapping dei corsi</h3>
+
+      @for (version of app.versions; track version.version_id) {
+
+        <div class="version-section">
+
+          <div class="version-header">
+            <h4>Versione {{ version.version_number }}</h4>
+
+            @if (version.is_active) {
+              <p-tag value="Versione attiva" severity="success" />
+            }
+          </div>
+
+          @for (mapping of version.mapping; track mapping.mapping_id) {
+
+            <div class="mapping-item">
+
+              <div>
+                <span class="detail-label">ID corso estero</span>
+                <strong>{{ mapping.foreign_course_id }}</strong>
+              </div>
+
+              <div>
+                <span class="detail-label">ID corso Ca' Foscari</span>
+                <strong>{{ mapping.cafoscari_course_id }}</strong>
+              </div>
+
+            </div>
+
+          } @empty {
+
+            <p>Nessun mapping presente in questa versione.</p>
+
+          }
+
+        </div>
+
+      } @empty {
+
+        <p>Nessuna versione disponibile.</p>
+
+      }
+
+    </div>
+
+  }
+
+</p-dialog>

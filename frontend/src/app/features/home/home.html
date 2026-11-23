@@ -1,5 +1,98 @@
+
 <app-navbar />
 
-<h1>Benvenuto nel mio gestionale!</h1>
+<main class="home-page">
 
-<p>Questa è la pagina iniziale della nostra applicazione Angular.</p>
+  <section class="hero">
+    <div class="hero-content">
+
+      <span class="hero-label">
+        ERASMUS+ & OVERSEAS
+      </span>
+
+      <h1>Il tuo futuro non ha confini.</h1>
+
+      <p>
+        Scopri nuove culture, incontra persone da tutto
+        il mondo e arricchisci il tuo percorso universitario
+        con un'esperienza di studio all'estero.
+      </p>
+
+      <div class="hero-actions">
+        <p-button
+          label="Scopri di più"
+          icon="pi pi-arrow-down"
+          iconPos="right"
+          (onClick)="scrollToPrograms()"
+        />
+
+        @if (!authService.currentUser()) {
+          <p-button
+            label="Accedi"
+            [outlined]="true"
+            routerLink="/login"
+          />
+        }
+      </div>
+
+    </div>
+
+    <div class="hero-image">
+      <img
+        src="/images/home1.jpg"
+        alt="Studenti universitari internazionali"
+      />
+    </div>
+  </section>
+
+  <section class="programs" id="programs">
+
+    <div class="section-header">
+      <h2>Esplora le opportunità</h2>
+      <p>
+        Due programmi, infinite possibilità
+        per il tuo percorso universitario.
+      </p>
+    </div>
+
+    <div class="program-grid">
+
+      <div class="program-card">
+        <img
+          src="/images/home2.jpg"
+          alt="Città europea"
+        />
+
+        <div class="program-content">
+          <h3>Erasmus+</h3>
+          <p>
+            Vivi un'esperienza di studio presso
+            un'università partner europea.
+            Scopri nuove culture e amplia
+            i tuoi orizzonti.
+          </p>
+        </div>
+      </div>
+
+      <div class="program-card">
+        <img
+          src="/images/home3.jpg"
+          alt="Campus universitario internazionale"
+        />
+
+        <div class="program-content">
+          <h3>Overseas</h3>
+          <p>
+            Esplora opportunità di mobilità
+            internazionale anche al di fuori
+            dell'Europa e arricchisci
+            il tuo percorso accademico.
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+
+</main>

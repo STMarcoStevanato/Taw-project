@@ -1,50 +1,78 @@
 
-<h1>Accedi al gestionale</h1>
+<div class="login-page">
+  <p-card class="login-card">
 
-<form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+    <div class="login-header">
+      <h1>Accedi al gestionale</h1>
+    </div>
 
-  <div>
-    <label for="email">Email</label>
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
 
-    <input
-      id="email"
-      type="email"
-      formControlName="email"
-      autocomplete="email"
-    />
+      <div class="field">
+        <label for="email">Email</label>
 
-    @if (
-      loginForm.controls.email.touched &&
-      loginForm.controls.email.invalid
-    ) {
-      <p>Inserisci un indirizzo email valido.</p>
-    }
-  </div>
+        <input
+          pInputText
+          id="email"
+          type="email"
+          formControlName="email"
+          autocomplete="email"
+          placeholder="nome@universita.it"
+        />
 
-  <div>
-    <label for="password">Password</label>
+        @if (
+          loginForm.controls.email.touched &&
+          loginForm.controls.email.invalid
+        ) {
+          <p class="error-message">
+            Inserisci un indirizzo email valido.
+          </p>
+        }
+      </div>
 
-    <input
-      id="password"
-      type="password"
-      formControlName="password"
-      autocomplete="current-password"
-    />
+      <div class="field">
+        <label for="password">Password</label>
 
-    @if (
-      loginForm.controls.password.touched &&
-      loginForm.controls.password.invalid
-    ) {
-      <p>La password è obbligatoria.</p>
-    }
-  </div>
+        <input
+          pInputText
+          id="password"
+          type="password"
+          formControlName="password"
+          autocomplete="current-password"
+          placeholder="Inserisci la password"
+        />
 
-  @if (errorMessage()) {
-    <p role="alert">{{ errorMessage() }}</p>
-  }
+        @if (
+          loginForm.controls.password.touched &&
+          loginForm.controls.password.invalid
+        ) {
+          <p class="error-message">
+            La password è obbligatoria.
+          </p>
+        }
+      </div>
 
-  <button type="submit" [disabled]="loading()">
-    {{ loading() ? 'Accesso in corso...' : 'Accedi' }}
-  </button>
+      @if (errorMessage()) {
+        <p class="error-message" role="alert">
+          {{ errorMessage() }}
+        </p>
+      }
 
-</form>
+      <p-button
+        type="submit"
+        label="Accedi"
+        icon="pi pi-sign-in"
+        [loading]="loading()"
+        [disabled]="loginForm.invalid || loading()"
+        styleClass="submit-button"
+      />
+
+    </form>
+
+    <div class="register-link">
+      <p>Non hai ancora un account?</p>
+      <a routerLink="/register">Registrati</a>
+    </div>
+
+  </p-card>
+</div>

@@ -1,0 +1,217 @@
+
+<p-dialog
+  header="Nuova Application"
+  [(visible)]="visible"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [style]="{ width: 'min(95vw, 750px)' }"
+>
+  <form [formGroup]="form" class="create-form">
+
+    @if (errorMessage()) {
+      <p-message severity="error">
+        {{ errorMessage() }}
+      </p-message>
+    }
+
+    <!-- REFERENTE -->
+    <div class="form-field">
+      <label for="referent">Referente *</label>
+
+      <p-select
+        inputId="referent"
+        formControlName="referent_id"
+        [options]="referents()"
+        optionValue="user_id"
+        optionLabel="fullName"
+        placeholder="Seleziona un referente"
+        [filter]="true"
+        filterBy="fullName"
+        [loading]="loading()"
+        [showClear]="true"
+        appendTo="body"
+        styleClass="full-width"
+      />
+    </div>
+
+    <!-- UNIVERSITÀ OSPITANTE -->
+    <div class="form-field">
+      <label for="university">Università ospitante *</label>
+
+      <p-select
+        inputId="university"
+        formControlName="host_institution_id"
+        [options]="universities()"
+        optionLabel="name"
+        optionValue="university_id"
+        placeholder="Seleziona un'università"
+        [filter]="true"
+        filterBy="name,city"
+        [loading]="universitiesLoading()"
+        [showClear]="true"
+        appendTo="body"
+        styleClass="full-width"
+      />
+    </div>
+
+    <!-- ANNO E PERIODO -->
+    <div class="form-row">
+
+      <div class="form-field">
+        <label for="academicYear">Anno accademico *</label>
+
+        <input
+          pInputText
+          id="academicYear"
+          formControlName="academic_year"
+          placeholder="Es. 2025/26"
+          class="full-width"
+        />
+
+        @if (
+          form.controls.academic_year.invalid &&
+          form.controls.academic_year.touched
+        ) {
+          <small class="field-error">
+            Inserisci l'anno nel formato 2025/26.
+          </small>
+        }
+      </div>
+
+      <div class="form-field">
+        <label for="period">Periodo di mobilità *</label>
+
+        <p-select
+          inputId="period"
+          formControlName="expected_mobility_period"
+          [options]="periods"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Seleziona periodo"
+          styleClass="full-width"
+          appendTo="body"
+        />
+      </div>
+
+    </div>
+
+    <!-- MAPPING CORSI -->
+    <div class="mappings-section">
+
+      <div class="mappings-header">
+        <h3>Associazione corsi</h3>
+
+        <p-button
+          type="button"
+          label="Aggiungi mapping"
+          icon="pi pi-plus"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="!form.controls.host_institution_id.value"
+          (onClick)="addMapping()"
+        />
+      </div>
+
+      <p class="mappings-description">
+        Associa i corsi dell'università ospitante
+        ai corsi di Ca' Foscari.
+      </p>
+
+      <div formArrayName="mappings">
+
+        @for (mapping of mappings.controls; track mapping; let i = $index) {
+
+          <div
+            class="mapping-row"
+            [formGroupName]="i"
+          >
+
+            <div class="mapping-title">
+              <strong>Mapping {{ i + 1 }}</strong>
+
+              <p-button
+                type="button"
+                icon="pi pi-trash"
+                severity="danger"
+                [text]="true"
+                [disabled]="mappings.length === 1"
+                (onClick)="removeMapping(i)"
+              />
+            </div>
+
+            <div class="form-row">
+
+              <!-- CORSO ESTERO -->
+              <div class="form-field">
+                <label>Corso estero *</label>
+
+                <p-select
+                  formControlName="foreign_course_id"
+                  [options]="foreignCourses()"
+                  optionLabel="displayName"
+                  optionValue="course_id"
+                  placeholder="Seleziona corso estero"
+                  [filter]="true"
+                  filterBy="code,name"
+                  [loading]="foreignCoursesLoading()"
+                  [disabled]="!form.controls.host_institution_id.value"
+                  appendTo="body"
+                  styleClass="full-width"
+                />
+              </div>
+
+              <!-- CORSO CA' FOSCARI -->
+              <div class="form-field">
+                <label>Corso Ca' Foscari *</label>
+
+                <p-select
+                  formControlName="cafoscari_course_id"
+                  [options]="cafoscariCourses()"
+                  optionLabel="displayName"
+                  optionValue="course_id"
+                  placeholder="Seleziona corso Ca' Foscari"
+                  [filter]="true"
+                  filterBy="code,name"
+                  [loading]="cafoscariCoursesLoading()"
+                  appendTo="body"
+                  styleClass="full-width"
+                />
+              </div>
+
+            </div>
+
+          </div>
+
+        }
+
+      </div>
+
+    </div>
+
+    <!-- PULSANTI -->
+    <div class="dialog-actions">
+
+      <p-button
+        type="button"
+        label="Annulla"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="close()"
+      />
+
+      
+    <p-button
+    type="button"
+    label="Crea Application"
+    icon="pi pi-check"
+    [loading]="saving()"
+    [disabled]="form.invalid || saving()"
+    (onClick)="submit()"
+    />
+
+
+    </div>
+
+  </form>
+</p-dialog>

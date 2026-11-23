@@ -1,0 +1,77 @@
+
+.register-page {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    background: #f4f7fb;
+  }
+  
+  .register-card {
+    width: 100%;
+    max-width: 520px;
+  }
+  
+  .register-header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  
+  .register-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  
+  .register-header p {
+    color: #64748b;
+    margin: 0;
+  }
+  
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .field label {
+    font-size: 14px;
+    font-weight: 600;
+  }
+  
+  .field input,
+  .field select {
+    width: 100%;
+  }
+  
+  .field select {
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: white;
+  }
+  
+  .error-message {
+    color: #dc2626;
+    font-size: 14px;
+  }
+  
+  @media (max-width: 480px) {
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+  }
+  

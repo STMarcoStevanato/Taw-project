@@ -114,9 +114,22 @@ export const findReferentById = async (referentId: number): Promise<boolean> => 
 
 export const getUserById = async (userId: number) => {
   const query = `
-    SELECT user_id, name, lastname,  email
-    FROM public.users
-    WHERE user_id = $1;
+    SELECT
+      u.user_id,
+      u.name,
+      u.lastname,
+      u.email,
+      CASE
+        WHEN s.user_id IS NOT NULL THEN 'students'
+        WHEN st.user_id IS NOT NULL THEN 'staff'
+        WHEN r.user_id IS NOT NULL THEN 'referents'
+        ELSE NULL
+      END AS role
+    FROM public.users u
+    LEFT JOIN public.students s ON u.user_id = s.user_id
+    LEFT JOIN public.staff st ON u.user_id = st.user_id
+    LEFT JOIN public.referents r ON u.user_id = r.user_id
+    WHERE u.user_id = $1;
   `;
 
   const result = await pool.query(query, [userId]);

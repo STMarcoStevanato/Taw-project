@@ -1,0 +1,282 @@
+
+/*.sidebar {
+    width: 250px;
+    min-height: 100vh;
+    background: #172b4d;
+    color: white;
+    padding: 24px 16px;
+  }
+  
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    margin-bottom: 32px;
+    font-size: 17px;
+    font-weight: 700;
+  }
+  
+  .sidebar-header i {
+    font-size: 22px;
+    color: #93c5fd;
+  }
+  
+  .sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .sidebar-menu a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 8px;
+    color: #cbd5e1;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+  
+  .sidebar-menu a:hover {
+    background: #263e63;
+    color: white;
+  }
+  
+  .sidebar-menu a.active {
+    background: #2563eb;
+    color: white;
+  }
+  
+  .sidebar-menu i {
+    font-size: 18px;
+  }
+  
+  @media (max-width: 768px) {
+    .sidebar {
+      width: 100%;
+      min-height: auto;
+    }
+  }
+
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 260px;
+    background: #ffffff;
+    border-right: 1px solid #e5e7eb;
+  }
+  
+  .sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+  
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 16px;
+    border-top: 1px solid #e5e7eb;
+  
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .footer-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  
+    width: 100%;
+    padding: 12px 14px;
+  
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+  
+    color: #374151;
+    font-size: 14px;
+    font-family: inherit;
+    text-decoration: none;
+    text-align: left;
+    cursor: pointer;
+  
+    transition: background 0.2s;
+  }
+  
+  .footer-link:hover {
+    background: #f3f4f6;
+  }
+  
+  .logout-button {
+    color: #dc2626;
+  }
+  
+  .logout-button:hover {
+    background: #fef2f2;
+  }*/
+
+
+:host {
+  display: block;
+  flex: 0 0 260px;
+  min-width: 0;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  height: 100dvh;
+  box-sizing: border-box;
+
+  background: #ffffff;
+  border-right: 1px solid #e5e7eb;
+  color: #374151;
+
+  position: sticky;
+  top: 0;
+}
+
+/* HEADER */
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 24px;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.sidebar-header i {
+  font-size: 22px;
+  color: #2563eb;
+}
+
+/* MENU */
+
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  padding: 16px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.sidebar-menu a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 14px 16px;
+  border-radius: 8px;
+
+  color: #475569;
+  text-decoration: none;
+
+  transition: background 0.2s;
+}
+
+.sidebar-menu a:hover {
+  background: #f1f5f9;
+}
+
+.sidebar-menu a.active {
+  background: #eff6ff;
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.sidebar-menu i {
+  font-size: 18px;
+}
+
+/* FOOTER */
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 16px;
+  border-top: 1px solid #e5e7eb;
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.footer-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  width: 100%;
+  padding: 12px 14px;
+
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+
+  color: #374151;
+  font-size: 14px;
+  font-family: inherit;
+  text-decoration: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.footer-link:hover {
+  background: #f3f4f6;
+}
+
+.logout-button {
+  color: #dc2626;
+}
+
+.logout-button:hover {
+  background: #fef2f2;
+}
+
+/* MOBILE */
+
+@media (max-width: 768px) {
+  :host {
+    flex: none;
+    width: 100%;
+  }
+
+  .sidebar {
+    height: auto;
+    min-height: 0;
+    position: static;
+    border-right: none;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .sidebar-header {
+    padding: 16px;
+    margin: 0;
+  }
+
+  .sidebar-menu {
+    overflow: visible;
+    padding: 12px 16px;
+  }
+
+  .sidebar-footer {
+    padding: 12px 16px;
+  }
+}
+
+  

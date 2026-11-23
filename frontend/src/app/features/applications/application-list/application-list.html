@@ -1,0 +1,117 @@
+
+<section class="applications-page">
+
+  <div class="page-header">
+
+    <div class="page-header-text">
+      <h1>Le mie Application</h1>
+      <p>Gestisci le tue candidature Erasmus+ e Overseas.</p>
+    </div>
+
+    <p-button
+      label="Crea Application"
+      icon="pi pi-plus"
+      (onClick)="createDialogVisible.set(true)"
+    />
+
+  </div>
+
+  @if (loading()) {
+
+    <p-progress-spinner />
+
+  } @else if (errorMessage()) {
+
+    <p-message severity="error">
+      {{ errorMessage() }}
+    </p-message>
+
+  } @else if (applications().length === 0) {
+
+    <p-message severity="info">
+      Non hai ancora creato nessuna Application.
+    </p-message>
+
+  } @else {
+
+    <div class="application-grid">
+
+      @for (application of applications(); track application.application_id) {
+
+        <p-card styleClass="application-card">
+
+          <ng-template #title>
+            {{ application.host_institution.name }}
+          </ng-template>
+
+          <ng-template #subtitle>
+            <div class="destination">
+              <i class="pi pi-map-marker"></i>
+              <span>
+                {{ application.host_institution.city }},
+                {{ application.host_institution.country_name }}
+              </span>
+            </div>
+          </ng-template>
+
+          <p-divider />
+
+          <div class="application-details">
+
+            <div class="detail-row">
+              <span class="detail-label">Referente</span>
+              <span>
+                {{ application.referent.name }}
+                {{ application.referent.lastname }}
+              </span>
+            </div>
+
+            <div class="detail-row">
+              <span class="detail-label">Anno accademico</span>
+              <span>{{ application.academic_year }}</span>
+            </div>
+
+            <div class="detail-row">
+              <span class="detail-label">Periodo</span>
+              <span>
+                {{ formatPeriod(application.expected_mobility_period) }}
+              </span>
+            </div>
+
+          </div>
+
+          <ng-template #footer>
+            <div class="card-footer">
+
+              <p-tag
+                [value]="application.current_state.name"
+                [severity]="getStateSeverity(application.current_state.name)"
+                [rounded]="true"
+              />
+
+              <p-button
+                label="Dettagli"
+                icon="pi pi-arrow-right"
+                iconPos="right"
+                severity="secondary"
+                [text]="true"
+                size="small"
+                (onClick)="openDetails(application)"
+              />
+
+            </div>
+          </ng-template>
+
+        </p-card>
+
+      }
+
+    </div>
+
+  }
+
+  <app-application-create
+    [(visible)]="createDialogVisible"
+  />
+
+</section>
