@@ -210,3 +210,18 @@
     gap: 10px;
   }
 }
+
+.application-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 600px) {
+  .application-actions {
+      justify-content: space-between;
+      gap: 8px;
+  }
+}

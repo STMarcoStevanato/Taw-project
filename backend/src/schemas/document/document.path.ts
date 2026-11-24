@@ -123,6 +123,52 @@ registry.registerPath({
 
 registry.registerPath({
   method: "get",
+  path: "/versions/{versionId}/learning-agreement",
+  summary: "Download the Learning Agreement PDF document",
+  description:
+    "Generates and streams the Learning Agreement PDF document for a given application version, containing student information, academic referent details, host university details, mobility period, course mappings, and total academic credits for both the sending and receiving institutions.",
+  tags: ["Documents"],
+  security: [
+    {
+      XSRFToken: [],
+    },
+  ],
+  request: {
+    params: VersionParamsSchema,
+  },
+  responses: {
+    200: {
+      description: "PDF document generated and downloaded successfully.",
+      content: {
+        "application/pdf": {
+          schema: z.string().openapi({
+            type: "string",
+            format: "binary",
+            description: "The generated Learning Agreement PDF file.",
+          }),
+        },
+      },
+    },
+    400: {
+      description: "Bad Request - Invalid versionId parameter.",
+    },
+    401: {
+      description: "Unauthorized - User is not authenticated.",
+    },
+    403: {
+      description: "Forbidden - Insufficient permissions (requires 'students' role) or user does not own this application version.",
+    },
+    404: {
+      description: "Not Found - Application version, application, or course mappings not found.",
+    },
+    500: {
+      description: "Internal Server Error - Error generating the Learning Agreement PDF document.",
+    },
+  },
+});
+
+registry.registerPath({
+  method: "get",
   path: "/versions/{versionId}/records-file",
   summary: "Download the Transcript of Records PDF document",
   description:

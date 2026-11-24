@@ -1,4 +1,5 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
+import { Router } from '@angular/router';
 
 import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
@@ -13,6 +14,8 @@ import { Application } from '../application.model';
 import { ButtonModule } from 'primeng/button';
 import { DividerModule } from 'primeng/divider';
 
+import { ApplicationDetails } from '../../../shared/components/application-details/application-details';
+
 @Component({
   selector: 'app-application-list',
   imports: [
@@ -23,6 +26,7 @@ import { DividerModule } from 'primeng/divider';
     ButtonModule,
     DividerModule,
     ApplicationCreate,
+    ApplicationDetails
   ],
   templateUrl: './application-list.html',
   styleUrl: './application-list.css'
@@ -39,9 +43,23 @@ export class ApplicationList implements OnInit {
   readonly selectedApplication = signal<Application | null>(null);
   readonly detailsDialogVisible = signal(false);
 
+  private readonly router = inject(Router);
+
 openDetails(application: Application): void {
+  console.log('Application selezionata:', application);
+
   this.selectedApplication.set(application);
   this.detailsDialogVisible.set(true);
+
+  console.log('Dialog visibile:', this.detailsDialogVisible());
+}
+
+manageApplication(application: Application): void {
+  this.router.navigate([
+      '/applications',
+      application.application_id,
+      'manage'
+  ]);
 }
 
   ngOnInit(): void {

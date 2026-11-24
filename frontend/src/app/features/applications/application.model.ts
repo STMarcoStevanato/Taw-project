@@ -115,3 +115,19 @@ export interface CoursesResponse {
     courses: Course[];
   };
 }
+
+export interface MappingCourse {
+  mapping_id: string;
+  university_courses_id: string;
+  course_name: string;
+  credits: number;
+  course_code: string;
+  foreign_score: number | string | null;
+  exam_date: string | null;
+  course_type: 'cafoscari' | 'foreign';
+}
+
+export interface MappingCoursesResponse {
+  status: string;
+  data: MappingCourse[];
+}

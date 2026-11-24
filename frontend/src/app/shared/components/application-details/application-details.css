@@ -1,17 +1,32 @@
 
-.details-content {
+/* ==================================================
+   STRUTTURA GENERALE
+   ================================================== */
+
+   .details-content {
     display: flex;
     flex-direction: column;
     gap: 16px;
+    min-width: 0;
   }
   
-  .details-header,
-  .version-header {
+  .details-content h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+  }
+  
+  .details-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 12px;
   }
+  
+  
+  /* ==================================================
+     INFORMAZIONI GENERALI
+     ================================================== */
   
   .details-grid {
     display: grid;
@@ -19,12 +34,18 @@
     gap: 20px;
   }
   
-  .details-grid > div,
-  .mapping-item > div {
+  .details-grid > div {
     display: flex;
     flex-direction: column;
     gap: 6px;
     min-width: 0;
+  }
+  
+  .details-grid strong {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
   }
   
   .detail-label {
@@ -32,34 +53,143 @@
     color: var(--p-text-muted-color);
   }
   
-  .version-section {
-    border: 1px solid var(--p-content-border-color);
-    border-radius: 10px;
-    padding: 16px;
-  }
   
-  .version-header h4 {
-    margin: 0;
-  }
+  /* ==================================================
+     VERSIONI - ACCORDION
+     ================================================== */
   
-  .mapping-item {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .version-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     gap: 16px;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--p-content-border-color);
+    width: 100%;
+    min-width: 0;
+    padding-right: 12px;
   }
   
-  .mapping-item:last-child {
-    border-bottom: none;
+  .version-title {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
   }
   
-  @media (max-width: 600px) {
-    .details-grid,
-    .mapping-item {
-      grid-template-columns: 1fr;
-    }
+  .version-title strong {
+    font-size: 15px;
+    font-weight: 600;
   }
+  
+  .version-count {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--p-text-muted-color);
+  }
+  
+  
+  /* ==================================================
+     TABELLA DEI MAPPING
+     ================================================== */
+  
+  .course-column {
+    width: 36%;
+    vertical-align: top;
+  }
+  
+  .score-column {
+    width: 12%;
+    text-align: center;
+    vertical-align: top;
+  }
+  
+  .date-column {
+    width: 16%;
+    white-space: nowrap;
+    vertical-align: top;
+  }
+  
+  
+  /* ==================================================
+     INFORMAZIONI DEI CORSI
+     ================================================== */
+  
+  .table-course {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    padding: 6px 0;
+    min-width: 0;
+  }
+  
+  .table-course strong {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+  
+  .table-course + .table-course {
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 1px solid var(--p-content-border-color);
+  }
+  
+  .course-code {
+    font-size: 12px;
+    color: var(--p-text-muted-color);
+  }
+  
+  .course-credits {
+    display: inline-flex;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--p-content-hover-background);
+    padding: 4px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+  
+  
+  /* ==================================================
+     VOTI E DATE DEGLI ESAMI
+     ================================================== */
+  
+  .exam-value {
+    padding: 6px 0;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  
+  .missing-value {
+    color: var(--p-text-muted-color);
+  }
+  
+  
+  /* ==================================================
+     CARICAMENTO DEI MAPPING
+     ================================================== */
+  
+  .mapping-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 24px;
+    color: var(--p-text-muted-color);
+    font-size: 14px;
+  }
+  
+  .mapping-loading p-progress-spinner {
+    width: 48px;
+    height: 48px;
+  }
+  
+  
+  /* ==================================================
+     LEARNING AGREEMENT
+     ================================================== */
   
   .document-section {
     display: flex;
@@ -78,3 +208,127 @@
     font-size: 13px;
     color: var(--p-text-muted-color);
   }
+  
+  .learning-agreement-field {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .download-error {
+    margin: 0;
+    font-size: 13px;
+    color: var(--p-red-500);
+  }
+  
+  
+  /* ==================================================
+     RESPONSIVE - TABLET
+     ================================================== */
+  
+  @media (max-width: 768px) {
+  
+    .details-grid {
+      gap: 16px;
+    }
+  
+    .version-heading {
+      gap: 10px;
+      padding-right: 8px;
+    }
+  
+    .table-course strong {
+      font-size: 13px;
+    }
+  
+  }
+  
+  
+  /* ==================================================
+     RESPONSIVE - MOBILE
+     ================================================== */
+  
+  @media (max-width: 600px) {
+  
+    .details-content {
+      gap: 12px;
+    }
+  
+    .details-content h3 {
+      font-size: 16px;
+    }
+  
+    .details-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+  
+    .details-header {
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+  
+    .version-heading {
+      gap: 8px;
+      padding-right: 4px;
+    }
+  
+    .version-title strong {
+      font-size: 14px;
+    }
+  
+    .table-course strong {
+      font-size: 13px;
+    }
+  
+    .course-code,
+    .course-credits {
+      font-size: 11px;
+    }
+  
+    .exam-value {
+      font-size: 13px;
+    }
+  
+    .document-section {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+  
+    .mapping-loading {
+      padding: 16px;
+    }
+  
+  }
+
+  .document-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 8px 0;
+}
+
+.document-section h3 {
+    margin: 0 0 6px;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.document-description {
+    margin: 0;
+    font-size: 13px;
+    color: var(--p-text-muted-color);
+}
+
+@media (max-width: 600px) {
+    .document-section {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+}
+  

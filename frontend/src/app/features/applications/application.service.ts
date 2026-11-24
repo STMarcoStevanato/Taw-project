@@ -7,7 +7,8 @@ import {
   CreateApplicationRequest,
   ReferentsResponse,
   UniversitiesResponse,
-  CoursesResponse
+  CoursesResponse,
+  MappingCoursesResponse
 } from './application.model';
 
 @Injectable({
@@ -50,6 +51,23 @@ export class ApplicationService {
   ): Observable<CoursesResponse> {
     return this.http.get<CoursesResponse>(
       `/api/universities/${universityId}/courses`
+    );
+  }
+
+  getMappingCourses(
+    mappingId: number | string
+  ): Observable<MappingCoursesResponse> {
+    return this.http.get<MappingCoursesResponse>(
+      `/api/exams/mapping/${mappingId}`
+    );
+  }
+
+  downloadLearningAgreement(versionId: number): Observable<Blob> {
+    return this.http.get(
+        `/api/versions/${versionId}/learning-agreement`,
+        {
+            responseType: 'blob'
+        }
     );
   }
 

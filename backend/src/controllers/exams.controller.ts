@@ -26,3 +26,22 @@ export const createRecognizedExam = async (
         next(err);
     }
 };
+
+export const getExamsByMapping = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const mapping_id = Number(req.params.mappingId);
+        const ExamsDetail = await examService.getExams(mapping_id)
+
+        return res.status(200).json({
+            status: "success",
+            data: ExamsDetail,
+        });
+
+    } catch (err) {
+        next(err);
+    }
+}

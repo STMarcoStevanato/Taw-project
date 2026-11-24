@@ -103,3 +103,84 @@ registry.registerPath({
     },
   },
 });
+
+registry.registerPath({
+  method: "get",
+  path: "/exams/mapping/{mappingId}",
+  summary: "Get exam details by mapping ID",
+  description:
+    "Retrieves the foreign and Ca' Foscari courses associated with a specific mapping, including course name, credits, course code, foreign score and exam date. If no recognized exam has been recorded, the foreign score and exam date are null.",
+  tags: ["Exams"],
+  security: [
+    {
+      XSRFToken: [],
+    },
+  ],
+  request: {
+    params: z.object({
+      mappingId: z.string().openapi({
+        example: "9",
+        description: "Unique identifier of the course mapping",
+      }),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Mapping details retrieved successfully",
+      content: {
+        "application/json": {
+          schema: z.object({
+            status: z.string().openapi({ example: "success" }),
+            data: z.array(
+              z.object({
+                mapping_id: z.string().openapi({ example: "9" }),
+                university_courses_id: z
+                  .string()
+                  .openapi({ example: "646" }),
+                course_name: z.string().openapi({
+                  example: "Physical Chemistry II: Quantum Chemistry",
+                }),
+                credits: z.number().int().openapi({ example: 12 }),
+                course_code: z.string().openapi({
+                  example: "PCHEM-9050",
+                }),
+                foreign_score: z.number().int().nullable().openapi({
+                  example: null,
+                }),
+                exam_date: z.string().nullable().openapi({
+                  example: null,
+                  format: "date",
+                }),
+                course_type: z.enum(["foreign", "cafoscari"]).openapi({
+                  example: "cafoscari",
+                }),
+              })
+            ),
+          }),
+        },
+      },
+    },
+    401: {
+      description: "Unauthorized. Missing or invalid authentication token.",
+      content: {
+        "application/json": {
+          schema: z.object({
+            message: z.string().openapi({ example: "Unauthorized" }),
+          }),
+        },
+      },
+    },
+    500: {
+      description: "Internal server error.",
+      content: {
+        "application/json": {
+          schema: z.object({
+            message: z.string().openapi({
+              example: "Internal server error",
+            }),
+          }),
+        },
+      },
+    },
+  },
+});

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { UploadLearningAgreement, getDocumentRecordsFile, getDocumentFileService, UploadTraqnscriptOfRecords, deleteTranscriptRecordsByIdService } from "../services/document.service";
-import { generateRecordsFile } from "../services/pdfService";
+import { UploadLearningAgreement, getDocumentLearningAgreement, getDocumentRecordsFile, getDocumentFileService, UploadTraqnscriptOfRecords, deleteTranscriptRecordsByIdService } from "../services/document.service";
+import { generateRecordsFile, generateLearningAgreement } from "../services/pdfService";
 
 export const uploadLearningAgreement = async (
     req: Request,
@@ -44,6 +44,40 @@ export const getDocumentById = async (
         );
 
         return res.sendFile(fileData.absolutePath);
+    } catch (err) {
+        next(err);
+    }
+};
+
+export const getLearningAgreement = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const versionId = Number(req.params.versionId);
+        const userId = (req as any).user?.user_id;
+
+        const result = await getDocumentLearningAgreement(
+            versionId,
+            userId
+        );
+
+        const doc = generateLearningAgreement(result);
+        res.setHeader("Content-Type", "application/pdf");
+
+        res.setHeader(
+            "Content-Disposition",
+            `attachment; filename=Learning_Agreement_v${versionId}.pdf`
+        );
+
+        doc.on("error", (err) => {
+            next(err);
+        });
+        doc.pipe(res);
+
+        doc.end();
+
     } catch (err) {
         next(err);
     }

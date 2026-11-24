@@ -1,3 +1,5 @@
+import type { getDocumentLearningAgreement } from '../services/document.service';
+
 export interface Exam {
   exam_id: number;
   mapping_id: number;
@@ -67,3 +69,8 @@ export interface TranscriptRecordsPayload {
   application: ApplicationData;
   university: UniversityData | null;
 }
+
+export type LearningAgreementPayload = Awaited<
+    ReturnType<typeof getDocumentLearningAgreement>
+>;
+

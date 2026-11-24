@@ -37,6 +37,7 @@ router.post(
     );
 
 router.get("/:versionId/documents/:documentId", isAuth, hasRole(["students", "referents", "staff"]), validationControllers.getDocumentById);
+router.get("/:versionId/learning-agreement", isAuth, hasRole(["students"]), validationControllers.getLearningAgreement);
 router.get("/:versionId/records-file", isAuth, hasRole(["students"]), validationControllers.getRecordsFile);
 
 router.delete("/:versionId/documents/:documentId", isAuth, hasRole(["students", "referents", "staff"]), validationControllers.deleteTranscriptRecordsById);

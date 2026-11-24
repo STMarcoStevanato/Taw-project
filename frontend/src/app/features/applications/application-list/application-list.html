@@ -89,15 +89,24 @@
                 [rounded]="true"
               />
 
-              <p-button
-                label="Dettagli"
-                icon="pi pi-arrow-right"
-                iconPos="right"
-                severity="secondary"
-                [text]="true"
-                size="small"
-                (onClick)="openDetails(application)"
-              />
+              <div class="application-actions">
+
+                <p-button
+                    label="Dettagli"
+                    icon="pi pi-eye"
+                    size="small"
+                    (onClick)="openDetails(application)"
+                />
+            
+                <p-button
+                    label="Gestisci Application"
+                    icon="pi pi-arrow-right"
+                    iconPos="right"
+                    size="small"
+                    (onClick)="manageApplication(application)"
+                />
+            
+            </div>
 
             </div>
           </ng-template>
@@ -113,5 +122,16 @@
   <app-application-create
     [(visible)]="createDialogVisible"
   />
+
+  <app-application-create
+    [(visible)]="createDialogVisible"
+  />
+
+  <app-application-details
+    [application]="selectedApplication()"
+    [(visible)]="detailsDialogVisible"
+  />
+
+  
 
 </section>

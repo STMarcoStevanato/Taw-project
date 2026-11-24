@@ -8,7 +8,8 @@ import { getApplicationById } from "../repositories/application.repository";
 import { getMappingByVersionId } from "../repositories/exams.repository";
 import { getUserById } from "../repositories/user.repository";
 import { getUniversityById } from "../repositories/universities.repository";
-import { STATES } from "../config/STATE";   
+import { STATES } from "../config/STATE";
+import { getMappingDetail } from "../repositories/version.repository"   
 
 export const UploadLearningAgreement = async (
      version_id: number,
@@ -109,6 +110,140 @@ export const getDocumentFileService = async (
         mime_type: document.mime_type,
     };
 };
+
+export const getDocumentLearningAgreement = async (
+    version_id: number,
+    userId: number
+) => {
+
+    const version = await getApplicationVersionById(version_id);
+    if (!version) {
+        const error = new Error("Version not found") as any;
+        error.statusCode = 404;
+        throw error;
+    }
+
+    const application = await getApplicationById(version.application_id);
+    if (!application) {
+        const error = new Error("Application not found") as any;
+        error.statusCode = 404;
+        throw error;
+    }
+
+    if (Number(application.student_id) !== Number(userId)) {
+        const error = new Error("User is not authorized to access this learning agreement") as any;
+        error.statusCode = 403;
+        throw error;
+    }
+
+    const mapping = await getMappingByVersionId(version_id);
+    if (!mapping) {
+        const error = new Error("Mapping not found for the given version") as any;
+        error.statusCode = 404;
+        throw error;
+    }
+
+    const user = await getUserById(userId);
+    const referent = await getUserById(Number(application.referent_id));
+    const university = await getUniversityById(Number(application.host_institution_id));
+
+
+    const mappings = [];
+
+    for (const item of mapping.mappings) {
+
+        const courses = await getMappingDetail(
+        Number(item.mapping_id)
+        );
+
+        mappings.push({
+            mapping_id: item.mapping_id,
+
+            cafoscari_courses: courses.filter(
+                course => course.course_type === "cafoscari"
+            ),
+
+            foreign_courses: courses.filter(
+                course => course.course_type === "foreign"
+            )
+        });
+    }
+
+    const cafoscariCourses = Array.from(
+        new Map(
+            mappings
+                .flatMap(mapping => mapping.cafoscari_courses)
+                .map(course => [
+                    String(course.university_courses_id),
+                    course
+                ])
+        ).values()
+    );
+
+    const foreignCourses = Array.from(
+        new Map(
+            mappings
+                .flatMap(mapping => mapping.foreign_courses)
+                .map(course => [
+                    String(course.university_courses_id),
+                    course
+                ])
+        ).values()
+    );
+
+    const totalCafoscariCredits = cafoscariCourses.reduce(
+        (total, course) => total + Number(course.credits),
+        0
+    );
+
+    const totalForeignCredits = foreignCourses.reduce(
+        (total, course) => total + Number(course.credits),
+        0
+    );
+
+    return {
+        application: {
+            application_id: application.application_id,
+            academic_year: application.academic_year,
+            expected_mobility_period: application.expected_mobility_period,
+            arrival_date: application.arrival_date,
+            departure_date: application.departure_date
+        },
+
+        version: {
+            version_id: version.version_id,
+            version_number: version.version_number,
+            is_active: version.is_active
+        },
+
+        student: {
+            user_id: user.user_id,
+            name: user.name,
+            lastname: user.lastname,
+            email: user.email
+        },
+
+        referent: {
+            user_id: referent.user_id,
+            name: referent.name,
+            lastname: referent.lastname,
+            email: referent.email
+        },
+
+        host_institution: university,
+
+        mappings: mappings,
+
+        cafoscari_courses: cafoscariCourses,
+
+        foreign_courses: foreignCourses,
+
+        total_credits: {
+            cafoscari: totalCafoscariCredits,
+            foreign: totalForeignCredits
+        }
+    };
+}
 
 export const getDocumentRecordsFile = async (
     version_id: number,

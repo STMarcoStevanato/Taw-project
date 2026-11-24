@@ -5,35 +5,57 @@
   [modal]="true"
   [draggable]="false"
   [resizable]="false"
-  [style]="{ width: 'min(95vw, 800px)' }"
+  [style]="{
+    width: 'min(95vw, 1100px)',
+    maxHeight: '90vh'
+  }"
+  [contentStyle]="{
+    overflow: 'auto'
+  }"
 >
 
   @if (application(); as app) {
 
     <div class="details-content">
 
+      <!-- INTESTAZIONE APPLICATION -->
+
       <div class="details-header">
+
         <span>Application #{{ app.application_id }}</span>
 
         <p-tag
           [value]="app.current_state.name"
           severity="info"
+          [rounded]="true"
         />
+
       </div>
 
       <p-divider />
+
+
+      <!-- INFORMAZIONI GENERALI -->
 
       <h3>Informazioni generali</h3>
 
       <div class="details-grid">
 
         <div>
-          <span class="detail-label">Università ospitante</span>
-          <strong>{{ app.host_institution.name }}</strong>
+          <span class="detail-label">
+            Università ospitante
+          </span>
+
+          <strong>
+            {{ app.host_institution.name }}
+          </strong>
         </div>
 
         <div>
-          <span class="detail-label">Destinazione</span>
+          <span class="detail-label">
+            Destinazione
+          </span>
+
           <strong>
             {{ app.host_institution.city }},
             {{ app.host_institution.country_name }}
@@ -41,7 +63,10 @@
         </div>
 
         <div>
-          <span class="detail-label">Referente</span>
+          <span class="detail-label">
+            Referente
+          </span>
+
           <strong>
             {{ app.referent.name }}
             {{ app.referent.lastname }}
@@ -49,81 +74,431 @@
         </div>
 
         <div>
-          <span class="detail-label">Email referente</span>
-          <strong>{{ app.referent.email }}</strong>
+          <span class="detail-label">
+            Email referente
+          </span>
+
+          <strong>
+            {{ app.referent.email }}
+          </strong>
         </div>
 
         <div>
-          <span class="detail-label">Anno accademico</span>
-          <strong>{{ app.academic_year }}</strong>
+          <span class="detail-label">
+            Anno accademico
+          </span>
+
+          <strong>
+            {{ app.academic_year }}
+          </strong>
         </div>
 
         <div>
-          <span class="detail-label">Periodo di mobilità</span>
+          <span class="detail-label">
+            Periodo di mobilità
+          </span>
+
           <strong>
             {{ formatPeriod(app.expected_mobility_period) }}
           </strong>
         </div>
 
         <div>
-            <span class="detail-label">Data di arrivo</span>
-            <strong>{{ formatDate(app.arrival_date) }}</strong>
-          </div>
-          
-          <div>
-            <span class="detail-label">Data di partenza</span>
-            <strong>{{ formatDate(app.departure_date) }}</strong>
-          </div>
+          <span class="detail-label">
+            Data di arrivo
+          </span>
+
+          <strong>
+            {{ formatDate(app.arrival_date) }}
+          </strong>
+        </div>
+
+        <div>
+          <span class="detail-label">
+            Data di partenza
+          </span>
+
+          <strong>
+            {{ formatDate(app.departure_date) }}
+          </strong>
+        </div>
 
       </div>
 
       <p-divider />
 
+
+      <!-- MAPPING DEI CORSI -->
+
       <h3>Mapping dei corsi</h3>
 
-      @for (version of app.versions; track version.version_id) {
+      @if (mappingsLoading()) {
 
-        <div class="version-section">
+        <div class="mapping-loading">
 
-          <div class="version-header">
-            <h4>Versione {{ version.version_number }}</h4>
+          <p-progress-spinner />
 
-            @if (version.is_active) {
-              <p-tag value="Versione attiva" severity="success" />
-            }
-          </div>
-
-          @for (mapping of version.mapping; track mapping.mapping_id) {
-
-            <div class="mapping-item">
-
-              <div>
-                <span class="detail-label">ID corso estero</span>
-                <strong>{{ mapping.foreign_course_id }}</strong>
-              </div>
-
-              <div>
-                <span class="detail-label">ID corso Ca' Foscari</span>
-                <strong>{{ mapping.cafoscari_course_id }}</strong>
-              </div>
-
-            </div>
-
-          } @empty {
-
-            <p>Nessun mapping presente in questa versione.</p>
-
-          }
+          <span>
+            Caricamento informazioni dei corsi...
+          </span>
 
         </div>
 
-      } @empty {
+      } @else {
 
-        <p>Nessuna versione disponibile.</p>
+        <p-accordion
+          [multiple]="true"
+          [value]="activeVersionIds()"
+        >
+
+          @for (
+            version of app.versions;
+            track version.version_id
+          ) {
+
+            <p-accordion-panel
+              [value]="version.version_id.toString()"
+            >
+
+              <!-- INTESTAZIONE VERSIONE -->
+
+              <p-accordion-header>
+
+                <div class="version-heading">
+
+                  <div class="version-title">
+
+                    <strong>
+                      Versione {{ version.version_number }}
+                    </strong>
+
+                    <span class="version-count">
+                      {{ version.mapping.length }} mapping
+                    </span>
+
+                  </div>
+
+                  <p-tag
+                    [value]="
+                      version.is_active
+                        ? 'Attiva'
+                        : 'Non attiva'
+                    "
+                    [severity]="
+                      version.is_active
+                        ? 'success'
+                        : 'secondary'
+                    "
+                    [rounded]="true"
+                  />
+
+                </div>
+
+              </p-accordion-header>
+
+
+              <!-- CONTENUTO VERSIONE -->
+
+              <p-accordion-content>
+
+                <div class="document-section">
+
+                  <div>
+                      <h3>Learning Agreement</h3>
+              
+                      <p class="document-description">
+                          Scarica il documento PDF di questa versione.
+                      </p>
+                  </div>
+              
+                  <p-button
+                      label="Scarica Learning Agreement"
+                      icon="pi pi-download"
+                      severity="success"
+                      [outlined]="true"
+                      size="small"
+                      [loading]="downloadingVersionId() === version.version_id"
+                      [disabled]="downloadingVersionId() !== null"
+                      (onClick)="downloadLearningAgreement(version.version_id)"
+                  />
+              
+              </div>
+              
+              <p-divider />
+
+                <p-table
+                  [value]="version.mapping"
+                  [stripedRows]="true"
+                  [scrollable]="true"
+                  [tableStyle]="{
+                    'min-width': '600px'
+                  }"
+                  size="small"
+                >
+
+                  <!-- INTESTAZIONE TABELLA -->
+
+                  <ng-template #header>
+
+                    <tr>
+
+                      <th class="course-column">
+                        Corso Ca' Foscari
+                      </th>
+
+                      <th class="course-column">
+                        Corso estero
+                      </th>
+
+                      <th class="score-column">
+                        Voto estero
+                      </th>
+
+                      <th class="date-column">
+                        Data esame
+                      </th>
+
+                    </tr>
+
+                  </ng-template>
+
+
+                  <!-- RIGHE DELLA TABELLA -->
+
+                  <ng-template #body let-mapping>
+
+                    @if (hasMappingError(mapping.mapping_id)) {
+
+                      <tr>
+
+                        <td colspan="4">
+
+                          <p-message severity="warn">
+                            Impossibile caricare il mapping
+                            #{{ mapping.mapping_id }}.
+                          </p-message>
+
+                        </td>
+
+                      </tr>
+
+                    } @else {
+
+                      <tr>
+
+                        <!-- CORSO CA' FOSCARI -->
+
+                        <td class="course-column">
+
+                          @for (
+                            course of getMappingCourses(
+                              mapping.mapping_id,
+                              'cafoscari'
+                            );
+                            track course.university_courses_id
+                          ) {
+
+                            <div class="table-course">
+
+                              <strong>
+                                {{ course.course_name }}
+                              </strong>
+
+                              <span class="course-code">
+                                {{ course.course_code }}
+                              </span>
+
+                              <span class="course-credits">
+                                {{ course.credits }} CFU
+                              </span>
+
+                            </div>
+
+                          } @empty {
+
+                            <span class="missing-value">
+                              —
+                            </span>
+
+                          }
+
+                        </td>
+
+
+                        <!-- CORSO ESTERO -->
+
+                        <td class="course-column">
+
+                          @for (
+                            course of getMappingCourses(
+                              mapping.mapping_id,
+                              'foreign'
+                            );
+                            track course.university_courses_id
+                          ) {
+
+                            <div class="table-course">
+
+                              <strong>
+                                {{ course.course_name }}
+                              </strong>
+
+                              <span class="course-code">
+                                {{ course.course_code }}
+                              </span>
+
+                              <span class="course-credits">
+                                {{ course.credits }} ECTS
+                              </span>
+
+                            </div>
+
+                          } @empty {
+
+                            <span class="missing-value">
+                              —
+                            </span>
+
+                          }
+
+                        </td>
+
+
+                        <!-- VOTO ESTERO -->
+
+                        <td class="score-column">
+
+                          @for (
+                            course of getMappingCourses(
+                              mapping.mapping_id,
+                              'foreign'
+                            );
+                            track course.university_courses_id
+                          ) {
+
+                            <div class="exam-value">
+
+                              @if (
+                                course.foreign_score !== null &&
+                                course.foreign_score !== undefined
+                              ) {
+
+                                <p-tag
+                                  [value]="
+                                    course.foreign_score.toString()
+                                  "
+                                  severity="info"
+                                />
+
+                              } @else {
+
+                                <span class="missing-value">
+                                  —
+                                </span>
+
+                              }
+
+                            </div>
+
+                          } @empty {
+
+                            <span class="missing-value">
+                              —
+                            </span>
+
+                          }
+
+                        </td>
+
+
+                        <!-- DATA ESAME -->
+
+                        <td class="date-column">
+
+                          @for (
+                            course of getMappingCourses(
+                              mapping.mapping_id,
+                              'foreign'
+                            );
+                            track course.university_courses_id
+                          ) {
+
+                            <div class="exam-value">
+
+                              @if (course.exam_date) {
+
+                                {{ formatDate(course.exam_date) }}
+
+                              } @else {
+
+                                <span class="missing-value">
+                                  —
+                                </span>
+
+                              }
+
+                            </div>
+
+                          } @empty {
+
+                            <span class="missing-value">
+                              —
+                            </span>
+
+                          }
+
+                        </td>
+
+                      </tr>
+
+                    }
+
+                  </ng-template>
+
+
+                  <!-- NESSUN MAPPING -->
+
+                  <ng-template #emptymessage>
+
+                    <tr>
+
+                      <td colspan="4">
+
+                        <span class="missing-value">
+                          Nessun mapping presente in questa versione.
+                        </span>
+
+                      </td>
+
+                    </tr>
+
+                  </ng-template>
+
+                </p-table>
+
+              </p-accordion-content>
+
+            </p-accordion-panel>
+
+          } @empty {
+
+            <p-message severity="info">
+              Nessuna versione disponibile.
+            </p-message>
+
+          }
+
+        </p-accordion>
 
       }
 
     </div>
+
+  } @else {
+
+    <p-message severity="info">
+      Nessuna Application selezionata.
+    </p-message>
 
   }
 

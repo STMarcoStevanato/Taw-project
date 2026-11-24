@@ -1,4 +1,5 @@
 import { STATES } from "../config/STATE";
+import { getMappingDetail } from "../repositories/version.repository"
 import * as applicationRepository from "../repositories/application.repository";
 import * as examRepository from "../repositories/exams.repository"; // Create or adjust import path as needed
 
@@ -68,3 +69,15 @@ export const createRecognizedExam = async (
 
   return newExam;
 };
+
+export const getExams = async (mapping_id: number) => {
+
+  const mapping = await examRepository.getMappingById(mapping_id);
+  if (!mapping) {
+    const error = new Error(`Mapping with ID ${mapping_id} does not exist`) as any;
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return await getMappingDetail(mapping_id);
+}
