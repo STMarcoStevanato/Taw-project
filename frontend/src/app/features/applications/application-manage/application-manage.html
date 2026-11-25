@@ -1,0 +1,705 @@
+<section class="manage-page">
+
+    <div class="navigation-header">
+
+        <p-button label="Torna alle Application" icon="pi pi-arrow-left" severity="secondary" [text]="true"
+            (onClick)="goBack()" />
+
+    </div>
+
+
+    @if (loading()) {
+
+    <div class="loading-container">
+
+        <p-progress-spinner />
+
+        <span>Caricamento Application...</span>
+
+    </div>
+
+    } @else if (errorMessage()) {
+
+    <p-message severity="error">
+        {{ errorMessage() }}
+    </p-message>
+
+    } @else if (application(); as app) {
+
+    <div class="application-header">
+
+        <div class="university-info">
+
+            <span class="application-reference">
+                Application #{{ app.application_id }}
+            </span>
+
+            <h1>{{ app.host_institution.name }}</h1>
+
+            <span class="university-location">
+
+                <i class="pi pi-map-marker"></i>
+
+                {{ app.host_institution.city }},
+                {{ app.host_institution.country_name }}
+
+            </span>
+
+        </div>
+
+        <p-tag [value]="app.current_state.name" [severity]="stateInfo().severity" [rounded]="true" />
+
+    </div>
+
+
+    <!-- APPLICATION TABS -->
+
+    <p-card styleClass="manage-card">
+
+        <p-tabs [value]="activeTab()" (valueChange)="activeTab.set($event ?? 'mapping')" [scrollable]="true">
+
+            <p-tablist>
+
+                <p-tab value="overview">
+
+                    <i class="pi pi-home"></i>
+                    <span>Riepilogo</span>
+
+                </p-tab>
+
+                <p-tab value="mapping">
+
+                    <i class="pi pi-book"></i>
+                    <span>Piano di studi</span>
+
+                </p-tab>
+
+                <p-tab value="documents">
+
+                    <i class="pi pi-folder"></i>
+                    <span>Documenti</span>
+
+                </p-tab>
+
+                <p-tab value="history">
+
+                    <i class="pi pi-history"></i>
+                    <span>Storico</span>
+
+                </p-tab>
+
+            </p-tablist>
+
+
+            <p-tabpanels>
+
+
+                <!-- OVERVIEW TAB -->
+
+                <p-tabpanel value="overview">
+
+                    <div class="tab-content">
+
+                        <h2>Informazioni generali</h2>
+
+                        <div class="information-grid">
+
+                            <div class="information-item">
+
+                                <span>Anno accademico</span>
+
+                                <strong>
+                                    {{ app.academic_year }}
+                                </strong>
+
+                            </div>
+
+                            <div class="information-item">
+
+                                <span>Periodo di mobilità</span>
+
+                                <strong>
+                                    {{ formatPeriod(app.expected_mobility_period) }}
+                                </strong>
+
+                            </div>
+
+                            @if (app.referent; as referent) {
+
+                                <div class="information-item">
+                                    <span>Referente</span>
+                                    <strong>
+                                        {{ referent.name }}
+                                        {{ referent.lastname }}
+                                    </strong>
+                                </div>
+                            
+                                <div class="information-item">
+                                    <span>Email referente</span>
+                                    <strong>{{ referent.email }}</strong>
+                                </div>
+                            
+                            }
+                            
+                            @if (app.student; as student) {
+                            
+                                <div class="information-item">
+                                    <span>Studente</span>
+                                    <strong>
+                                        {{ student.name }}
+                                        {{ student.lastname }}
+                                    </strong>
+                                </div>
+                            
+                                <div class="information-item">
+                                    <span>Email studente</span>
+                                    <strong>{{ student.email }}</strong>
+                                </div>
+                            
+                            }
+
+                            <div class="information-item">
+
+                                <span>Data di arrivo</span>
+
+                                <strong>
+                                    {{ formatDate(app.arrival_date) }}
+                                </strong>
+
+                            </div>
+
+                            <div class="information-item">
+
+                                <span>Data di partenza</span>
+
+                                <strong>
+                                    {{ formatDate(app.departure_date) }}
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+
+                        <p-divider />
+
+
+                        <!-- CURRENT STATE -->
+
+                        <div class="state-section">
+
+                            <h2>
+
+                                <i class="pi pi-info-circle"></i>
+
+                                Stato corrente
+
+                            </h2>
+
+                            <p>
+                                {{ stateInfo().description }}
+                            </p>
+
+                        </div>
+
+
+                        <!-- NEXT ACTION -->
+
+                        <div class="next-action" [class.action-required]="requiresMyAction()">
+
+                            <h3>
+
+                                <i class="pi pi-arrow-right"></i>
+
+                                @if (requiresMyAction()) {
+
+                                Prossima azione
+
+                                } @else {
+
+                                Prossimo passaggio
+
+                                }
+
+                            </h3>
+
+                            <p>
+                                {{ stateInfo().nextStep }}
+                            </p>
+
+                            @if (stateInfo().responsibleRole) {
+
+                            <div class="responsible-role">
+
+                                <span>Responsabile:</span>
+
+                                <strong>
+                                    {{ formatRole(stateInfo().responsibleRole) }}
+                                </strong>
+
+                            </div>
+
+                            }
+
+                            @if (canUploadLearningAgreement()) {
+
+                            <div class="next-action-buttons">
+
+                                <p-button label="Gestisci documenti" icon="pi pi-arrow-right" iconPos="right"
+                                    size="small" (onClick)="openDocuments()" />
+
+                            </div>
+
+                            }
+
+                        </div>
+
+                    </div>
+
+                </p-tabpanel>
+
+
+                <!-- STUDY PLAN TAB -->
+
+
+                <p-tabpanel value="mapping">
+
+                    <div class="tab-content">
+
+                        <div class="section-header">
+
+                            <div>
+                                <h2>Mapping dei corsi</h2>
+
+                                <p class="section-description">
+                                    Piano di studi presso l'università ospitante.
+                                </p>
+                            </div>
+
+                            <p-select [options]="versionOptions()" [ngModel]="selectedVersionId()"
+                                (onChange)="selectVersion($event.value)" optionLabel="label" optionValue="value"
+                                placeholder="Seleziona versione" [disabled]="mappingsLoading()" />
+
+                        </div>
+
+                        @if (mappingsLoading()) {
+
+                        <div class="loading-container">
+                            <p-progress-spinner />
+                            <span>Caricamento mapping...</span>
+                        </div>
+
+                        } @else if (mappingsError()) {
+
+                        <p-message severity="error">
+                            {{ mappingsError() }}
+                        </p-message>
+
+                        } @else if (selectedVersion(); as version) {
+
+                        <p-table [value]="version.mapping" [stripedRows]="true" [scrollable]="true"
+                            [tableStyle]="{ 'min-width': '500px' }">
+
+                            <ng-template #header>
+
+                                <tr>
+                                    <th>Ca' Foscari</th>
+                                    <th>{{ app.host_institution.name }}</th>
+                                </tr>
+
+                            </ng-template>
+
+                            <ng-template #body let-mapping>
+
+                                <tr>
+
+                                    <td>
+
+                                        @for (
+                                        course of getMappingCourses(
+                                        mapping.mapping_id,
+                                        'cafoscari'
+                                        );
+                                        track course.university_courses_id
+                                        ) {
+
+                                        <div class="course-info">
+
+                                            <span class="course-code">
+                                                {{ course.course_code }}
+                                            </span>
+
+                                            <strong>
+                                                {{ course.course_name }}
+                                            </strong>
+
+                                            <span class="course-credits">
+                                                {{ course.credits }} CFU
+                                            </span>
+
+                                        </div>
+
+                                        }
+
+                                    </td>
+
+                                    <td>
+
+                                        @for (
+                                        course of getMappingCourses(
+                                        mapping.mapping_id,
+                                        'foreign'
+                                        );
+                                        track course.university_courses_id
+                                        ) {
+
+                                        <div class="course-info">
+
+                                            <span class="course-code">
+                                                {{ course.course_code }}
+                                            </span>
+
+                                            <strong>
+                                                {{ course.course_name }}
+                                            </strong>
+
+                                            <span class="course-credits">
+                                                {{ course.credits }} ECTS
+                                            </span>
+
+                                        </div>
+
+                                        }
+
+                                    </td>
+
+                                </tr>
+
+                            </ng-template>
+
+                            <ng-template #emptymessage>
+
+                                <tr>
+                                    <td colspan="2">
+                                        Nessun mapping disponibile.
+                                    </td>
+                                </tr>
+
+                            </ng-template>
+
+                        </p-table>
+
+                        <div class="credits-summary">
+
+                            <div class="credits-item">
+
+                                <span>Totale Ca' Foscari</span>
+
+                                <strong>
+                                    {{ totalCafoscariCredits() }} CFU
+                                </strong>
+
+                            </div>
+
+                            <div class="credits-item">
+
+                                <span>Totale università ospitante</span>
+
+                                <strong>
+                                    {{ totalForeignCredits() }} ECTS
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+                    } @else {
+
+                        @if (canEditApplicationDetails()) {
+                    
+                            <p-message severity="warn">
+                                Il Learning Agreement è stato rifiutato.
+                                Modifica l'Application e definisci un nuovo piano di studi.
+                            </p-message>
+                    
+                        } @else {
+                    
+                            <p-message severity="info">
+                                Nessuna versione disponibile.
+                            </p-message>
+                    
+                        }
+                    
+                    }
+                    
+                    @if (canEditMapping()) {
+                    
+                        <div class="section-actions">
+                    
+                            <p-button
+                                [label]="canEditApplicationDetails()
+                                    ? 'Modifica Application'
+                                    : 'Modifica piano di studi'"
+                                icon="pi pi-pencil"
+                                [outlined]="true"
+                                (onClick)="openEditMapping()"
+                            />
+                    
+                        </div>
+                    
+                    }
+
+                    </div>
+
+                </p-tabpanel>
+
+                <!-- DOCUMENTS TAB -->
+
+                <p-tabpanel value="documents">
+
+                    <div class="tab-content">
+
+                        <div class="section-header">
+
+                            <div>
+
+                                <h2>Documentazione</h2>
+
+                                <p class="section-description">
+                                    Gestisci i documenti relativi alla mobilità.
+                                </p>
+
+                            </div>
+
+                            <p-select [options]="versionOptions()" [ngModel]="selectedVersionId()"
+                                (onChange)="selectVersion($event.value)" optionLabel="label" optionValue="value"
+                                placeholder="Seleziona versione" />
+
+                        </div>
+
+                        @if (documentError()) {
+
+                        <p-message severity="error">
+                            {{ documentError() }}
+                        </p-message>
+
+                        }
+
+                        @if (documentSuccess()) {
+
+                        <p-message severity="success">
+                            {{ documentSuccess() }}
+                        </p-message>
+
+                        }
+
+                        @if (selectedVersion(); as version) {
+
+                        <div class="document-card">
+
+                            <div class="document-header">
+
+                                <i class="pi pi-file-pdf document-icon"></i>
+
+                                <div class="document-info">
+
+                                    <h3>Learning Agreement</h3>
+
+                                    <span>
+                                        Versione {{ version.version_number }}
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                            <p-divider />
+
+                            @if (canDownloadLearningAgreement()) {
+
+                                <div class="document-download">
+                            
+                                    <div class="document-info">
+                            
+                                        <strong>Learning Agreement</strong>
+                            
+                                        @if (isStudent()) {
+                            
+                                            <span>
+                                                Scarica il Learning Agreement generato
+                                                per la versione selezionata.
+                                            </span>
+                            
+                                        } @else if (isReferent()) {
+                            
+                                            <span>
+                                                Consulta il Learning Agreement relativo
+                                                alla versione selezionata del piano di studi.
+                                            </span>
+                            
+                                        }
+                            
+                                    </div>
+                            
+                                    <p-button
+                                        label="Scarica Learning Agreement"
+                                        icon="pi pi-download"
+                                        [outlined]="true"
+                                        [loading]="downloadingLA()"
+                                        (onClick)="downloadLearningAgreement()"
+                                    />
+                            
+                                </div>
+                            
+                            }
+
+                            @if (canUploadLearningAgreement()) {
+
+                            <p-divider />
+
+                            <h3>Carica Learning Agreement</h3>
+
+                            <p class="section-description">
+                                Carica il documento da sottoporre
+                                alla valutazione del referente.
+                            </p>
+
+                            <p-fileupload name="LEARNING_AGREEMENT" accept="application/pdf" [multiple]="false"
+                                [customUpload]="true" [disabled]="uploadingLA()" chooseLabel="Seleziona PDF"
+                                uploadLabel="Carica documento" cancelLabel="Annulla"
+                                (uploadHandler)="uploadLearningAgreement($event)">
+
+                                <ng-template #empty>
+
+                                    <div class="upload-placeholder">
+
+                                        <i class="pi pi-cloud-upload"></i>
+
+                                        <strong>
+                                            Trascina qui il Learning Agreement
+                                        </strong>
+
+                                        <span>
+                                            Formato supportato: PDF
+                                        </span>
+
+                                    </div>
+
+                                </ng-template>
+
+                            </p-fileupload>
+
+                            @if (uploadingLA()) {
+
+                            <p-message severity="info">
+                                Caricamento del documento in corso...
+                            </p-message>
+
+                            }
+
+                            }
+
+                        </div>
+
+                        } @else {
+
+                        <p-message severity="info">
+                            Nessuna versione disponibile.
+                        </p-message>
+
+                        }
+
+                    </div>
+
+                </p-tabpanel>
+
+                <!-- HISTORY TAB -->
+
+                <p-tabpanel value="history">
+
+                    <div class="tab-content">
+
+                        <h2>Storico delle versioni</h2>
+
+                        @for (
+                        version of app.versions;
+                        track version.version_id
+                        ) {
+
+                        <div class="version-item">
+
+                            <div class="version-info">
+
+                                <i class="pi pi-history"></i>
+
+                                <div>
+
+                                    <strong>
+                                        Versione {{ version.version_number }}
+                                    </strong>
+
+                                    <span>
+                                        {{ version.mapping.length }} mapping
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                            <p-tag [value]="version.is_active ? 'Attiva' : 'Non attiva'"
+                                [severity]="version.is_active ? 'success' : 'secondary'" [rounded]="true" />
+
+                        </div>
+
+                        } @empty {
+
+                        <p-message severity="info">
+                            Nessuna versione disponibile.
+                        </p-message>
+
+                        }
+
+                    </div>
+
+                </p-tabpanel>
+
+            </p-tabpanels>
+
+        </p-tabs>
+
+        @if (reviewSuccess()) {
+
+            <p-message severity="success">
+        
+                {{ reviewSuccess() }}
+        
+            </p-message>
+        
+        }
+        
+        @if (canReviewLearningAgreement()) {
+        
+            @if (selectedVersion(); as version) {
+        
+                <app-application-review
+                    [application]="app"
+                    [version]="version"
+                    (reviewed)="onApplicationReviewed($event)"
+                />
+        
+            }
+        
+        }
+        <app-application-edit-mapping
+    [application]="application()"
+    [version]="selectedVersion()"
+    [mappingCourses]="mappingCourses()"
+    [(visible)]="editDialogVisible"
+    (updated)="onApplicationUpdated()"
+/>
+
+    </p-card>
+
+    }
+
+</section>

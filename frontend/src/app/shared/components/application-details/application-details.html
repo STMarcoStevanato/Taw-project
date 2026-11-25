@@ -62,26 +62,55 @@
           </strong>
         </div>
 
-        <div>
-          <span class="detail-label">
-            Referente
-          </span>
+        @if (app.referent; as referent) {
 
-          <strong>
-            {{ app.referent.name }}
-            {{ app.referent.lastname }}
-          </strong>
-        </div>
-
-        <div>
-          <span class="detail-label">
-            Email referente
-          </span>
-
-          <strong>
-            {{ app.referent.email }}
-          </strong>
-        </div>
+          <div>
+            <span class="detail-label">
+              Referente
+            </span>
+        
+            <strong>
+              {{ referent.name }}
+              {{ referent.lastname }}
+            </strong>
+          </div>
+        
+          <div>
+            <span class="detail-label">
+              Email referente
+            </span>
+        
+            <strong>
+              {{ referent.email }}
+            </strong>
+          </div>
+        
+        }
+        
+        @if (app.student; as student) {
+        
+          <div>
+            <span class="detail-label">
+              Studente
+            </span>
+        
+            <strong>
+              {{ student.name }}
+              {{ student.lastname }}
+            </strong>
+          </div>
+        
+          <div>
+            <span class="detail-label">
+              Email studente
+            </span>
+        
+            <strong>
+              {{ student.email }}
+            </strong>
+          </div>
+        
+        }
 
         <div>
           <span class="detail-label">

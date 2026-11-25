@@ -1,0 +1,186 @@
+
+<section class="review-section">
+
+    <div class="review-information">
+
+        <div class="review-heading">
+
+            <i class="pi pi-check-square"></i>
+
+            <h3>{{ reviewTitle() }}</h3>
+
+        </div>
+
+        <p>
+            Verifica il piano di studi e il documento
+            presentato dallo studente prima di esprimere
+            una valutazione.
+        </p>
+
+        <span class="version-info">
+
+            Versione da valutare:
+            {{ version().version_number }}
+
+        </span>
+
+    </div>
+
+
+    <div class="review-actions">
+
+        <p-button
+            label="Rifiuta Learning Agreement"
+            icon="pi pi-times"
+            severity="danger"
+            [outlined]="true"
+            [disabled]="submitting()"
+            (onClick)="openReview(false)"
+        />
+
+        <p-button
+            label="Approva Learning Agreement"
+            icon="pi pi-check"
+            severity="success"
+            [disabled]="submitting()"
+            (onClick)="openReview(true)"
+        />
+
+    </div>
+
+</section>
+
+
+<p-dialog
+    [header]="dialogTitle()"
+    [(visible)]="visible"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [closable]="!submitting()"
+    [closeOnEscape]="!submitting()"
+    [style]="{ width: 'min(95vw, 550px)' }"
+>
+
+    <div class="dialog-content">
+
+        <div class="application-reference">
+
+            <strong>
+                {{ application().host_institution.name }}
+            </strong>
+
+            <span>
+
+                Application #{{ application().application_id }}
+                · Versione {{ version().version_number }}
+
+            </span>
+
+        </div>
+
+
+        @if (errorMessage()) {
+
+            <p-message severity="error">
+
+                {{ errorMessage() }}
+
+            </p-message>
+
+        }
+
+
+        @if (approved()) {
+
+            <p>
+                Confermi l'approvazione del Learning Agreement
+                relativo alla versione selezionata?
+            </p>
+
+            @if (isChangesReview()) {
+
+                <p-message severity="info">
+
+                    Stai approvando le modifiche al piano
+                    di studi presentate dallo studente
+                    durante la mobilità.
+
+                </p-message>
+
+            } @else {
+
+                <p-message severity="info">
+
+                    L'Application proseguirà verso la
+                    verifica da parte dell'Overseas Office.
+
+                </p-message>
+
+            }
+
+        } @else {
+
+            <p>
+                Indica il motivo per cui non ritieni
+                approvabile il Learning Agreement.
+            </p>
+
+            <div class="form-field">
+
+                <label for="rejection-reason">
+
+                    Motivazione del rifiuto *
+
+                </label>
+
+                <textarea
+                    pTextarea
+                    id="rejection-reason"
+                    rows="5"
+                    [autoResize]="true"
+                    [ngModel]="reason()"
+                    (ngModelChange)="reason.set($event)"
+                    [disabled]="submitting()"
+                    placeholder="Descrivi il motivo del rifiuto..."
+                ></textarea>
+
+                <small>
+                    La motivazione sarà comunicata allo studente.
+                </small>
+
+            </div>
+
+        }
+
+    </div>
+
+
+    <ng-template #footer>
+
+        <p-button
+            label="Annulla"
+            severity="secondary"
+            [outlined]="true"
+            [disabled]="submitting()"
+            (onClick)="closeDialog()"
+        />
+
+        <p-button
+            [label]="approved()
+                ? 'Conferma approvazione'
+                : 'Conferma rifiuto'"
+            [icon]="approved()
+                ? 'pi pi-check'
+                : 'pi pi-times'"
+            [severity]="approved()
+                ? 'success'
+                : 'danger'"
+            [loading]="submitting()"
+            [disabled]="!canSubmit()"
+            (onClick)="submitReview()"
+        />
+
+    </ng-template>
+
+</p-dialog>

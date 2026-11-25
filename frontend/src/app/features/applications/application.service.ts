@@ -8,8 +8,12 @@ import {
   ReferentsResponse,
   UniversitiesResponse,
   CoursesResponse,
-  MappingCoursesResponse
+  MappingCoursesResponse,
+  UpdateApplicationRequest,
+  ReferentApplicationsResponse,
+  ReferentApprovalRequest
 } from './application.model';
+
 
 @Injectable({
   providedIn: 'root'
@@ -70,5 +74,52 @@ export class ApplicationService {
         }
     );
   }
+
+  uploadLearningAgreement(
+    versionId: number,
+    file: File
+): Observable<unknown> {
+
+    const formData = new FormData();
+
+    formData.append('LEARNING_AGREEMENT', file);
+
+    return this.http.post(
+        `/api/versions/${versionId}/learning-agreement`,
+        formData
+    );
+}
+
+updateApplication(
+  applicationId: number | string,
+  data: UpdateApplicationRequest
+): Observable<unknown> {
+
+  return this.http.put(
+      `/api/applications/${applicationId}`,
+      data
+  );
+}
+
+getReferentApplications(
+  referentId: number | string
+): Observable<ReferentApplicationsResponse> {
+
+  return this.http.get<ReferentApplicationsResponse>(
+      `/api/applications/referent/${referentId}`
+  );
+}
+
+referentApproval(
+  applicationId: number | string,
+  versionId: number | string,
+  data: ReferentApprovalRequest
+): Observable<unknown> {
+
+  return this.http.post(
+      `/api/applications/${applicationId}/version/${versionId}/referent-approval`,
+      data
+  );
+}
 
 }

@@ -56,7 +56,8 @@ openDetails(application: Application): void {
 
 manageApplication(application: Application): void {
   this.router.navigate([
-      '/applications',
+      '/dashboard',
+      'applications',
       application.application_id,
       'manage'
   ]);

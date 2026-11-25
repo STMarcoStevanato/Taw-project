@@ -1,0 +1,387 @@
+
+<section class="referent-page">
+
+    <div class="page-header">
+
+        <div>
+
+            <h1>Application assegnate</h1>
+
+            <p>
+                Gestisci e valuta le Application
+                dei tuoi studenti.
+            </p>
+
+        </div>
+
+        <p-button
+            label="Aggiorna"
+            icon="pi pi-refresh"
+            severity="secondary"
+            [outlined]="true"
+            [loading]="loading()"
+            (onClick)="loadApplications()"
+        />
+
+    </div>
+
+    @if (loading()) {
+
+        <div class="loading-container">
+
+            <p-progress-spinner />
+
+            <span>Caricamento Application...</span>
+
+        </div>
+
+    } @else if (errorMessage()) {
+
+        <p-message severity="error">
+
+            {{ errorMessage() }}
+
+        </p-message>
+
+    } @else {
+
+        <!-- SUMMARY CARDS -->
+
+        <div class="summary-grid">
+
+            <button
+                type="button"
+                class="summary-card"
+                [class.selected]="selectedFilter() === 'all'"
+                (click)="setFilter('all')"
+            >
+
+                <div class="summary-header">
+
+                    <span>Application totali</span>
+
+                    <i class="pi pi-folder"></i>
+
+                </div>
+
+                <strong>{{ totalApplications() }}</strong>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="summary-card"
+                [class.selected]="
+                    selectedFilter() === 'learning-agreement'
+                "
+                (click)="setFilter('learning-agreement')"
+            >
+
+                <div class="summary-header">
+
+                    <span>Learning Agreement da valutare</span>
+
+                    <i class="pi pi-file-pdf"></i>
+
+                </div>
+
+                <strong>
+                    {{ pendingLearningAgreements() }}
+                </strong>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="summary-card"
+                [class.selected]="
+                    selectedFilter() === 'changes'
+                "
+                (click)="setFilter('changes')"
+            >
+
+                <div class="summary-header">
+
+                    <span>Modifiche da valutare</span>
+
+                    <i class="pi pi-pencil"></i>
+
+                </div>
+
+                <strong>{{ pendingChanges() }}</strong>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="summary-card"
+                [class.selected]="
+                    selectedFilter() === 'exams'
+                "
+                (click)="setFilter('exams')"
+            >
+
+                <div class="summary-header">
+
+                    <span>Esami da approvare</span>
+
+                    <i class="pi pi-graduation-cap"></i>
+
+                </div>
+
+                <strong>{{ pendingExams() }}</strong>
+
+            </button>
+
+        </div>
+
+
+        <!-- APPLICATION TABLE -->
+
+        <p-card>
+
+            <div class="table-section">
+
+                <div class="table-header">
+
+                    <div>
+
+                        <h2>Application degli studenti</h2>
+
+                        <span class="muted">
+
+                            {{ totalPending() }}
+                            Application richiedono una valutazione
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- FILTERS -->
+
+                <div class="table-filters">
+
+                    <div class="search-field">
+
+                        <i class="pi pi-search"></i>
+
+                        <input
+                            pInputText
+                            placeholder="Cerca studente, università..."
+                            [ngModel]="searchTerm()"
+                            (ngModelChange)="searchTerm.set($event)"
+                        />
+
+                    </div>
+
+                    <p-select
+                        [options]="filterOptions"
+                        [ngModel]="selectedFilter()"
+                        (ngModelChange)="setFilter($event)"
+                        optionLabel="label"
+                        optionValue="value"
+                    />
+
+                </div>
+
+
+                <p-table
+                    [value]="filteredApplications()"
+                    [paginator]="true"
+                    [rows]="10"
+                    [rowsPerPageOptions]="[5, 10, 20]"
+                    [stripedRows]="true"
+                    [scrollable]="true"
+                    [tableStyle]="{ 'min-width': '950px' }"
+                    [showCurrentPageReport]="true"
+                    currentPageReportTemplate="
+                        {first}-{last} di {totalRecords} Application
+                    "
+                >
+
+                <ng-template #header>
+
+                    <tr>
+                
+                        <th pSortableColumn="application_id">
+                            ID
+                            <p-sorticon field="application_id" />
+                        </th>
+                
+                        <th pSortableColumn="student.lastname">
+                            Studente
+                            <p-sorticon field="student.lastname" />
+                        </th>
+                
+                        <th pSortableColumn="host_institution.name">
+                            Università ospitante
+                            <p-sorticon field="host_institution.name" />
+                        </th>
+                
+                        <th pSortableColumn="academic_year">
+                            Anno accademico
+                            <p-sorticon field="academic_year" />
+                        </th>
+                
+                        <th>Stato</th>
+                
+                        <th>Azioni</th>
+                
+                    </tr>
+                
+                </ng-template>
+
+
+                    <ng-template #body let-application>
+
+                        <tr>
+
+                            <td>
+
+                                <span class="application-id">
+                                    #{{ application.application_id }}
+                                </span>
+
+                            </td>
+
+                            <td>
+
+                                <div class="student-info">
+
+                                    @if (application.student) {
+
+                                        <strong>
+
+                                            {{ application.student.name }}
+                                            {{ application.student.lastname }}
+
+                                        </strong>
+
+                                        <span class="muted">
+                                            {{ application.student.email }}
+                                        </span>
+
+                                    } @else {
+
+                                        <span>Non disponibile</span>
+
+                                    }
+
+                                </div>
+
+                            </td>
+
+                            <td>
+
+                                <div class="university-info">
+
+                                    <strong>
+                                        {{ application.host_institution.name }}
+                                    </strong>
+
+                                    <span class="muted">
+
+                                        {{ application.host_institution.city }},
+                                        {{ application.host_institution.country_name }}
+
+                                    </span>
+
+                                </div>
+
+                            </td>
+
+                            <td>
+
+                                <div class="period-info">
+
+                                    <strong>
+                                        {{ application.academic_year }}
+                                    </strong>
+
+                                    <span class="muted">
+
+                                        {{ formatPeriod(
+                                            application.expected_mobility_period
+                                        ) }}
+
+                                    </span>
+
+                                </div>
+
+                            </td>
+
+                            <td>
+
+                                <p-tag
+                                    [value]="getStateLabel(application)"
+                                    [severity]="getStateSeverity(application)"
+                                    [rounded]="true"
+                                />
+
+                            </td>
+
+                            <td>
+
+                                <p-button
+                                    [label]="requiresAction(application)
+                                        ? 'Valuta'
+                                        : 'Gestisci'"
+                                    [icon]="requiresAction(application)
+                                        ? 'pi pi-check-square'
+                                        : 'pi pi-eye'"
+                                    [severity]="requiresAction(application)
+                                        ? 'primary'
+                                        : 'secondary'"
+                                    [outlined]="!requiresAction(application)"
+                                    size="small"
+                                    (onClick)="manageApplication(application)"
+                                />
+
+                            </td>
+
+                        </tr>
+
+                    </ng-template>
+
+
+                    <ng-template #emptymessage>
+
+                        <tr>
+
+                            <td colspan="6">
+
+                                <div class="empty-state">
+
+                                    <i class="pi pi-inbox"></i>
+
+                                    <strong>
+                                        Nessuna Application trovata
+                                    </strong>
+
+                                    <span class="muted">
+                                        Prova a modificare i filtri.
+                                    </span>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                    </ng-template>
+
+                </p-table>
+
+            </div>
+
+        </p-card>
+
+    }
+
+</section>

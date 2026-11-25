@@ -1,7 +1,14 @@
 export interface Application {
     application_id: string;
+
+    student?: {
+      student_id: string;
+      name: string;
+      lastname: string;
+      email: string;
+    };
   
-    referent: {
+    referent?: {
       referent_id: string;
       name: string;
       lastname: string;
@@ -131,3 +138,23 @@ export interface MappingCoursesResponse {
   status: string;
   data: MappingCourse[];
 }
+
+export interface UpdateApplicationRequest {
+  host_institution_id: number;
+  academic_year: string;
+  expected_mobility_period:
+      | 'first_semester'
+      | 'second_semester'
+      | 'full_year';
+
+  mappings: CourseMappingRequest[];
+}
+
+export type ReferentApplicationsResponse = StudentApplicationsResponse;
+
+export interface ReferentApprovalRequest {
+  approved: boolean;
+  reason?: string;
+}
+
+

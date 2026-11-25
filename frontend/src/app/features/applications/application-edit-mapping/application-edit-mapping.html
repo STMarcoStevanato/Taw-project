@@ -1,0 +1,335 @@
+
+<p-dialog
+    [header]="canEditDetails()
+        ? 'Modifica Application'
+        : 'Modifica piano di studi'"
+    [(visible)]="visible"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [closable]="!saving()"
+    [closeOnEscape]="!saving()"
+    [style]="{ width: 'min(95vw, 950px)' }"
+    [contentStyle]="{ overflow: 'auto' }"
+>
+
+    @if (loading()) {
+
+        <div class="loading-container">
+
+            <p-progress-spinner />
+
+            <span>Caricamento dati...</span>
+
+        </div>
+
+    } @else if (application(); as app) {
+
+        <div class="edit-content">
+
+            <div class="application-reference">
+
+                Application #{{ app.application_id }}
+
+                <span>Creazione nuova versione</span>
+
+            </div>
+
+            @if (errorMessage()) {
+
+                <p-message severity="error">
+                    {{ errorMessage() }}
+                </p-message>
+
+            }
+
+            @if (canEditDetails()) {
+
+                <p-message severity="warn">
+                    L'Application è stata rifiutata.
+                    Puoi modificare i dati della mobilità
+                    e il piano di studi.
+                </p-message>
+
+            } @else if (isMobilityInProgress()) {
+
+                <p-message severity="info">
+                    Durante la mobilità puoi modificare
+                    solamente il piano di studi.
+                    Gli esami già registrati devono essere mantenuti.
+                </p-message>
+
+            }
+
+            <!-- DATI DELLA MOBILITÀ -->
+
+            <h3>Dati della mobilità</h3>
+
+            <div class="form-grid">
+
+                <div class="form-field full-width">
+
+                    <label>Università ospitante</label>
+
+                    <p-select
+                        [options]="universityOptions()"
+                        [ngModel]="hostInstitutionId()"
+                        (ngModelChange)="changeHostInstitution($event)"
+                        optionLabel="label"
+                        optionValue="value"
+                        [filter]="true"
+                        [disabled]="!canEditDetails() || saving()"
+                        placeholder="Seleziona università"
+                        appendTo="body"
+                    />
+
+                </div>
+
+                <div class="form-field">
+
+                    <label>Anno accademico</label>
+
+                    <input
+                        pInputText
+                        [ngModel]="academicYear()"
+                        (ngModelChange)="academicYear.set($event)"
+                        [disabled]="!canEditDetails() || saving()"
+                        placeholder="2025/26"
+                    />
+
+                </div>
+
+                <div class="form-field">
+
+                    <label>Periodo di mobilità</label>
+
+                    <p-select
+                        [options]="mobilityPeriods"
+                        [ngModel]="mobilityPeriod()"
+                        (ngModelChange)="mobilityPeriod.set($event)"
+                        optionLabel="label"
+                        optionValue="value"
+                        [disabled]="!canEditDetails() || saving()"
+                        appendTo="body"
+                    />
+
+                </div>
+
+            </div>
+
+            <p-divider />
+
+            <!-- MAPPING -->
+
+            <div class="section-header">
+
+                <div>
+
+                    <h3>Mapping dei corsi</h3>
+
+                    <span class="muted">
+                        {{ mappings().length }} associazioni
+                    </span>
+
+                </div>
+
+                <p-button
+                    label="Aggiungi mapping"
+                    icon="pi pi-plus"
+                    size="small"
+                    [outlined]="true"
+                    [disabled]="saving() || !canEdit()"
+                    (onClick)="addMapping()"
+                />
+
+            </div>
+
+            @if (coursesError()) {
+
+                <p-message severity="error">
+                    {{ coursesError() }}
+                </p-message>
+
+            }
+
+            <div class="mapping-list">
+
+                @for (
+                    mapping of mappings();
+                    track mapping.id;
+                    let i = $index
+                ) {
+
+                    <div
+                        class="mapping-card"
+                        [class.locked-mapping]="mapping.locked"
+                    >
+
+                        <div class="mapping-header">
+
+                            <strong>
+                                Mapping {{ i + 1 }}
+                            </strong>
+
+                            @if (mapping.locked) {
+
+                                <span class="locked-label">
+
+                                    <i class="pi pi-lock"></i>
+
+                                    Esame registrato
+
+                                </span>
+
+                            } @else {
+
+                                <p-button
+                                    icon="pi pi-trash"
+                                    severity="danger"
+                                    [text]="true"
+                                    [rounded]="true"
+                                    [disabled]="saving()"
+                                    (onClick)="removeMapping(mapping.id)"
+                                />
+
+                            }
+
+                        </div>
+
+                        <div class="mapping-grid">
+
+                            <div class="form-field">
+
+                                <label>Corso Ca' Foscari</label>
+
+                                <p-select
+                                    [options]="cafoscariCourseOptions()"
+                                    [ngModel]="mapping.cafoscari_course_id"
+                                    (ngModelChange)="changeCafoscariCourse(
+                                        mapping.id,
+                                        $event
+                                    )"
+                                    optionLabel="label"
+                                    optionValue="value"
+                                    [filter]="true"
+                                    [disabled]="mapping.locked || saving()"
+                                    placeholder="Seleziona corso"
+                                    appendTo="body"
+                                />
+
+                            </div>
+
+                            <div class="form-field">
+
+                                <label>Corso università ospitante</label>
+
+                                <p-select
+                                    [options]="foreignCourseOptions()"
+                                    [ngModel]="mapping.foreign_course_id"
+                                    (ngModelChange)="changeForeignCourse(
+                                        mapping.id,
+                                        $event
+                                    )"
+                                    optionLabel="label"
+                                    optionValue="value"
+                                    [filter]="true"
+                                    [loading]="loadingForeignCourses()"
+                                    [disabled]="
+                                        mapping.locked ||
+                                        saving() ||
+                                        loadingForeignCourses()
+                                    "
+                                    placeholder="Seleziona corso"
+                                    appendTo="body"
+                                />
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                } @empty {
+
+                    <p-message severity="info">
+                        Aggiungi almeno un mapping al piano di studi.
+                    </p-message>
+
+                }
+
+            </div>
+
+            <!-- TOTALI -->
+
+            <div class="credits-summary">
+
+                <div class="credits-item">
+
+                    <span>Totale Ca' Foscari</span>
+
+                    <strong>
+                        {{ totalCafoscariCredits() }} CFU
+                    </strong>
+
+                </div>
+
+                <div class="credits-item">
+
+                    <span>Totale università ospitante</span>
+
+                    <strong>
+                        {{ totalForeignCredits() }} ECTS
+                    </strong>
+
+                </div>
+
+            </div>
+
+            <p-divider />
+
+            <div class="version-notice">
+
+                <i class="pi pi-info-circle"></i>
+
+                <span>
+                    Il salvataggio creerà una nuova versione
+                    dell'Application.
+                </span>
+
+            </div>
+
+        </div>
+
+    }
+
+    <ng-template #footer>
+
+        <div class="dialog-actions">
+
+            <p-button
+                label="Annulla"
+                severity="secondary"
+                [outlined]="true"
+                [disabled]="saving()"
+                (onClick)="close()"
+            />
+
+            <p-button
+                label="Salva modifiche"
+                icon="pi pi-check"
+                [loading]="saving()"
+                [disabled]="
+                    !formValid() ||
+                    loading() ||
+                    loadingForeignCourses() ||
+                    !!coursesError() ||
+                    saving()
+                "
+                (onClick)="save()"
+            />
+
+        </div>
+
+    </ng-template>
+
+</p-dialog>
