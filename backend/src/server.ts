@@ -1,7 +1,8 @@
+import "dotenv/config";
 import app from "./app";
 import { loadApplicationStates } from "./config/STATE";
 
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 async function startServer() {
   try {
