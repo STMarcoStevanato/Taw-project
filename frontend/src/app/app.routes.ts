@@ -1,4 +1,3 @@
-
 import { Routes } from '@angular/router';
 
 import { Home } from './features/home/home';
@@ -9,8 +8,9 @@ import { Dashboard } from './features/dashboard/dashboard';
 import { authGuard } from './core/guards/auth-guard';
 
 import { ApplicationPage } from './features/applications/application-page/application-page';
-
 import { ApplicationManage } from './features/applications/application-manage/application-manage';
+
+import { NotificationList } from './features/notifications/notification-list/notification-list';
 
 export const routes: Routes = [
     {
@@ -42,6 +42,10 @@ export const routes: Routes = [
             {
                 path: 'applications/:applicationId/manage',
                 component: ApplicationManage
+            },
+            {
+                path: 'notifications',
+                component: NotificationList
             }
         ]
     }

@@ -18,3 +18,5 @@ import "./document/document.path";
 
 import "./exam/exam.schema";
 import "./exam/exam.path";
+
+import "./notification/notification.path";

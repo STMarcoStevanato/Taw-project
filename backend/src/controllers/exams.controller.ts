@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import * as examService from "../services/exams.service"; // adjust path as needed
+import * as examService from "../services/exams.service"; 
 
 export const createRecognizedExam = async (
     req: Request,

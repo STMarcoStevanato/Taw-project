@@ -792,6 +792,34 @@ export const updateMobilityDates = async (
   }
 };
 
+export const getStatesByApplicationId = async (application_id: number) => {
+  const query = `
+    SELECT
+      ast.transition_id,
+      ast.application_id,
+      ast.from_state_id,
+      fs.name AS from_state,
+      ast.to_state_id,
+      ts.name AS to_state,
+      ast.reason,
+      ast.performed_by,
+      u.name AS performed_by_name,
+      u.lastname AS performed_by_lastname,
+      ast.created_at
+    FROM application_state_transitions ast
+    LEFT JOIN application_states fs
+      ON ast.from_state_id = fs.state_id
+    LEFT JOIN application_states ts
+      ON ast.to_state_id = ts.state_id
+    LEFT JOIN users u
+      ON ast.performed_by = u.user_id
+    WHERE ast.application_id = $1
+    ORDER BY ast.created_at ASC, ast.transition_id ASC;
+  `;
+  const result = await pool.query(query, [application_id]);
+  return result.rows;
+};
+
 
 
 

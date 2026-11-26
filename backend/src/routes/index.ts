@@ -7,6 +7,7 @@ import studentRoutes from "./students.route";
 import applicationRoutes from "./applications.route";
 import versionRoutes from "./versions.route";
 import examRoutes from "./exams.route";
+import notificationRoutes from "./notifications.routes"
 
 const router = Router();
 
@@ -18,6 +19,7 @@ router.use("/auth", authRoutes);
 router.use("/students", studentRoutes);
 router.use("/applications", applicationRoutes);
 router.use("/versions", versionRoutes);
+router.use("/notifications", notificationRoutes);
 
 
 

@@ -1,82 +1,101 @@
 <aside class="sidebar">
 
-    <div class="sidebar-header">
-      <i class="pi pi-globe"></i>
-      <span>Erasmus & Overseas</span>
-    </div>
-  
-    <nav class="sidebar-menu">
-  
-      @if (role() === 'students') {
-  
-        <a
-          routerLink="/dashboard/applications"
-          routerLinkActive="active"
-        >
-          <i class="pi pi-file"></i>
-          <span>Le mie Application</span>
-        </a>
-  
-      }
-  
-      @if (role() === 'staff') {
-  
-        <a
-          routerLink="/dashboard/applications"
-          routerLinkActive="active"
-        >
-          <i class="pi pi-folder"></i>
-          <span>Gestione Application</span>
-        </a>
-  
-      }
-  
-      @if (role() === 'referents') {
-  
-        <a
-          routerLink="/dashboard/applications"
-          routerLinkActive="active"
-        >
-          <i class="pi pi-users"></i>
-          <span>Application studenti</span>
-        </a>
-  
-      }
-  
+  <div class="sidebar-header">
+    <i class="pi pi-globe"></i>
+    <span>Erasmus & Overseas</span>
+  </div>
+
+  <nav class="sidebar-menu">
+
+    @if (role() === 'students') {
+
       <a
-        routerLink="/dashboard/notifications"
+        routerLink="/dashboard/applications"
         routerLinkActive="active"
       >
-        <i class="pi pi-bell"></i>
-        <span>Notifiche</span>
+        <i class="pi pi-file"></i>
+        <span>Le mie Application</span>
       </a>
-  
-    </nav>
 
-    <div class="sidebar-footer">
+    }
 
-        <a routerLink="/" class="footer-link">
-          <i class="pi pi-home"></i>
-          <span>Torna alla Home</span>
-        </a>
-      
-        <button
-          type="button"
-          class="footer-link logout-button"
-          (click)="logout()"
-          [disabled]="isLoggingOut"
+    @if (role() === 'staff') {
+
+      <a
+        routerLink="/dashboard/applications"
+        routerLinkActive="active"
+      >
+        <i class="pi pi-folder"></i>
+        <span>Gestione Application</span>
+      </a>
+
+    }
+
+    @if (role() === 'referents') {
+
+      <a
+        routerLink="/dashboard/applications"
+        routerLinkActive="active"
+      >
+        <i class="pi pi-users"></i>
+        <span>Application studenti</span>
+      </a>
+
+    }
+
+    <!-- Notifications -->
+
+    <a
+      routerLink="/dashboard/notifications"
+      routerLinkActive="active"
+      class="notification-link"
+    >
+
+      <i class="pi pi-bell"></i>
+
+      <span>Notifiche</span>
+
+      @if (unreadCount() > 0) {
+
+        <span
+          class="notification-badge"
+          [attr.aria-label]="unreadCount() + ' notifiche non lette'"
         >
-          <i
-            [class]="isLoggingOut
-              ? 'pi pi-spin pi-spinner'
-              : 'pi pi-sign-out'"
-          ></i>
-      
-          <span>
-            {{ isLoggingOut ? 'Logout in corso...' : 'Logout' }}
-          </span>
-        </button>
-      
-    </div>
-  
-  </aside>
+          {{ unreadCount() > 99 ? '99+' : unreadCount() }}
+        </span>
+
+      }
+
+    </a>
+
+  </nav>
+
+  <div class="sidebar-footer">
+
+    <a routerLink="/" class="footer-link">
+      <i class="pi pi-home"></i>
+      <span>Torna alla Home</span>
+    </a>
+
+    <button
+      type="button"
+      class="footer-link logout-button"
+      (click)="logout()"
+      [disabled]="isLoggingOut"
+    >
+
+      <i
+        [class]="isLoggingOut
+          ? 'pi pi-spin pi-spinner'
+          : 'pi pi-sign-out'"
+      ></i>
+
+      <span>
+        {{ isLoggingOut ? 'Logout in corso...' : 'Logout' }}
+      </span>
+
+    </button>
+
+  </div>
+
+</aside>

@@ -1,0 +1,345 @@
+<div class="notification-page">
+
+    <!-- Page header -->
+    <div class="page-header">
+  
+      <div class="page-heading">
+        <h1>Notifiche</h1>
+  
+        <p>
+          Consulta gli aggiornamenti e i cambiamenti di stato
+          delle tue Application.
+        </p>
+      </div>
+  
+      <p-button
+        icon="pi pi-refresh"
+        label="Aggiorna"
+        severity="secondary"
+        [outlined]="true"
+        [loading]="loading()"
+        [disabled]="actionInProgress()"
+        (onClick)="loadNotifications()"
+      />
+  
+    </div>
+  
+    <!-- Statistics -->
+    <div class="notification-stats">
+  
+      <p-card styleClass="stat-card">
+        <div class="stat-content">
+  
+          <div class="stat-icon stat-total">
+            <i class="pi pi-bell"></i>
+          </div>
+  
+          <div class="stat-details">
+            <span class="stat-label">Notifiche totali</span>
+            <span class="stat-value">{{ totalCount() }}</span>
+          </div>
+  
+        </div>
+      </p-card>
+  
+      <p-card styleClass="stat-card">
+        <div class="stat-content">
+  
+          <div class="stat-icon stat-unread">
+            <i class="pi pi-envelope"></i>
+          </div>
+  
+          <div class="stat-details">
+            <span class="stat-label">Non lette</span>
+            <span class="stat-value">{{ unreadCount() }}</span>
+          </div>
+  
+        </div>
+      </p-card>
+  
+      <p-card styleClass="stat-card">
+        <div class="stat-content">
+  
+          <div class="stat-icon stat-read">
+            <i class="pi pi-check-circle"></i>
+          </div>
+  
+          <div class="stat-details">
+            <span class="stat-label">Lette</span>
+            <span class="stat-value">{{ readCount() }}</span>
+          </div>
+  
+        </div>
+      </p-card>
+  
+    </div>
+  
+    <!-- Error message -->
+    @if (errorMessage()) {
+  
+      <p-message severity="error">
+        {{ errorMessage() }}
+      </p-message>
+  
+    }
+  
+    <!-- Success message -->
+    @if (successMessage()) {
+  
+      <p-message severity="success">
+        {{ successMessage() }}
+      </p-message>
+  
+    }
+  
+    <!-- Notifications container -->
+    <p-card styleClass="notifications-card">
+  
+      <!-- Toolbar -->
+      <div class="notification-toolbar">
+  
+        <div class="notification-filters">
+  
+          <p-button
+            [label]="'Tutte (' + totalCount() + ')'"
+            [severity]="activeFilter() === 'all' ? 'primary' : 'secondary'"
+            [outlined]="activeFilter() !== 'all'"
+            size="small"
+            (onClick)="setFilter('all')"
+          />
+  
+          <p-button
+            [label]="'Non lette (' + unreadCount() + ')'"
+            [severity]="activeFilter() === 'unread' ? 'primary' : 'secondary'"
+            [outlined]="activeFilter() !== 'unread'"
+            size="small"
+            (onClick)="setFilter('unread')"
+          />
+  
+          <p-button
+            [label]="'Lette (' + readCount() + ')'"
+            [severity]="activeFilter() === 'read' ? 'primary' : 'secondary'"
+            [outlined]="activeFilter() !== 'read'"
+            size="small"
+            (onClick)="setFilter('read')"
+          />
+  
+        </div>
+  
+        <p-button
+          label="Segna tutte come lette"
+          icon="pi pi-check"
+          severity="secondary"
+          [text]="true"
+          size="small"
+          [loading]="markingAllAsRead()"
+          [disabled]="unreadCount() === 0 || actionInProgress()"
+          (onClick)="markAllAsRead()"
+        />
+  
+      </div>
+  
+      <!-- Loading -->
+      @if (loading()) {
+  
+        <div class="loading-container">
+  
+        <p-progress-spinner
+            [style]="{
+              width: '45px',
+              height: '45px'
+            }"
+            strokeWidth="4"
+        />
+  
+          <span>Caricamento notifiche...</span>
+  
+        </div>
+  
+      } @else if (filteredNotifications().length === 0) {
+  
+        <!-- Empty state -->
+        <div class="empty-state">
+  
+          <div class="empty-icon">
+            <i class="pi pi-inbox"></i>
+          </div>
+  
+          <h3>Nessuna notifica</h3>
+  
+          <p>
+            {{ errorMessage()
+              ? 'Non è stato possibile visualizzare le notifiche.'
+              : getEmptyMessage() }}
+          </p>
+  
+          @if (activeFilter() !== 'all') {
+  
+            <p-button
+              label="Visualizza tutte"
+              severity="secondary"
+              [outlined]="true"
+              size="small"
+              (onClick)="setFilter('all')"
+            />
+  
+          }
+  
+        </div>
+  
+      } @else {
+  
+        <!-- Notification list -->
+        <div class="notification-list">
+  
+          @for (
+            notification of filteredNotifications();
+            track notification.notification_id
+          ) {
+  
+            <article
+              class="notification-item"
+              [class.unread]="notification.read_at === null"
+            >
+  
+              <!-- Notification header -->
+              <div class="notification-header">
+  
+                <div
+                  class="notification-icon"
+                  [attr.data-severity]="getNotificationSeverity(notification)"
+                >
+                  <i [class]="getNotificationIcon(notification)"></i>
+                </div>
+  
+                <div class="notification-heading">
+  
+                  <h3>
+                    {{ getNotificationTitle(notification) }}
+                  </h3>
+  
+                  <div class="notification-meta">
+  
+                    <span>
+                      Application #{{ notification.application_id }}
+                    </span>
+  
+                    @if (notification.host_institution) {
+  
+                      <span class="meta-separator">·</span>
+  
+                      <span>
+                        {{ notification.host_institution }}
+                      </span>
+  
+                    }
+  
+                  </div>
+  
+                </div>
+  
+                @if (notification.read_at === null) {
+  
+                  <span
+                    class="unread-indicator"
+                    aria-label="Notifica non letta"
+                    title="Notifica non letta"
+                  ></span>
+  
+                }
+  
+              </div>
+  
+              <!-- Application state -->
+              @if (notification.to_state) {
+  
+                <div class="notification-state">
+  
+                  <p-tag
+                    [value]="notification.to_state"
+                    [severity]="getNotificationSeverity(notification)"
+                  />
+  
+                </div>
+  
+              }
+  
+              <!-- Notification reason -->
+              @if (notification.reason) {
+  
+                <div class="notification-reason">
+  
+                  <span class="reason-label">
+                    Motivazione
+                  </span>
+  
+                  <p>{{ notification.reason }}</p>
+  
+                </div>
+  
+              }
+  
+              <!-- Notification footer -->
+              <div class="notification-footer">
+  
+                <div class="notification-date">
+  
+                  <i class="pi pi-calendar"></i>
+  
+                  <span>
+                    {{ formatDateTime(notification.created_at) }}
+                  </span>
+  
+                </div>
+  
+                <div class="notification-actions">
+  
+                  @if (notification.read_at === null) {
+  
+                    <p-button
+                      label="Segna come letta"
+                      icon="pi pi-check"
+                      severity="secondary"
+                      [text]="true"
+                      size="small"
+                      [disabled]="actionInProgress()"
+                      (onClick)="markAsRead(notification)"
+                    />
+  
+                  } @else {
+  
+                    <span class="read-label">
+                      <i class="pi pi-check-circle"></i>
+                      Letta
+                    </span>
+  
+                  }
+  
+                  <p-button
+                    label="Visualizza Application"
+                    icon="pi pi-arrow-right"
+                    iconPos="right"
+                    [outlined]="true"
+                    size="small"
+                    [loading]="
+                      readingNotificationId() === notification.notification_id
+                    "
+                    [disabled]="actionInProgress()"
+                    (onClick)="openApplication(notification)"
+                  />
+  
+                </div>
+  
+              </div>
+  
+            </article>
+  
+          }
+  
+        </div>
+  
+      }
+  
+    </p-card>
+  
+  </div>

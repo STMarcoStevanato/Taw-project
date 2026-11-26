@@ -1,6 +1,7 @@
 import { CourseMappingsInput } from "../schemas/application/application.schema"
 import { findStudentById } from "../repositories/user.repository";
 import { findReferentById } from "../repositories/user.repository";
+import { getUserById } from "../repositories/user.repository";
 import { getValidCourseIds }from "../repositories/universities.repository"
 import { findUniversityById } from "../repositories/universities.repository";
 import { getDocumentByVersionAndType } from "../repositories/documents.repository";
@@ -264,7 +265,7 @@ export const editApplication = async (
         await validateCoursesAndHostInstitution(application.host_institution_id, mappings);
 
     } else {
-        newState = STATES.AWAITING_LEARNING_AGREEMENT_APPROVAL_BY_REFERENT;
+        newState = STATES.CREATED;
         await validateCoursesAndHostInstitution(host_institution_id, mappings);
     } 
 
@@ -390,3 +391,37 @@ export const updateMobilityDates = async (
 
     return updatedApplication;
 };
+
+export const getApplicationState = async (
+    user_id: number,
+    application_id: number
+) => {
+    const application = await applicationRepository.getApplicationById(application_id);
+    if (!application) {
+        const error = new Error(`Application with ID ${application_id} does not exist`) as any;
+        error.statusCode = 404;
+        throw error;
+    }
+
+    const user = await getUserById(user_id);
+    if (!user) {
+        const error = new Error(`User with ID ${user_id} does not exist`) as any;
+        error.statusCode = 404;
+        throw error;
+    }
+
+    if (user.role == "students" && user_id != application.student_id) {
+        const error = new Error(`User with ID ${user_id} is not authorized to see the states of this application`) as any;
+        error.statusCode = 403;
+        throw error;
+    }
+    
+    if (user.role == "referents" && user_id != application.referent_id) {
+        const error = new Error(`User with ID ${user_id} is not authorized to see the states of this application`) as any;
+        error.statusCode = 403;
+        throw error;
+    } 
+
+    const applicationStates = await applicationRepository.getStatesByApplicationId(application_id);
+    return applicationStates;
+}

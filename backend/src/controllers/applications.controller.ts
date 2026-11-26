@@ -215,3 +215,23 @@ export const updateMobilityDates = async (
         next(err);
     }
 };
+
+export const applicationState = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+
+        const userId = (req as any).user.user_id;
+        const applicationId = Number(req.params.applicationId);
+        const result = await applicationService.getApplicationState(userId, applicationId);
+
+        return res.status(200).json({
+            status: "success",
+            data: result,
+        });
+    } catch (err) {
+        next(err);
+    }
+};

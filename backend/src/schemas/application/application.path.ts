@@ -766,3 +766,147 @@ registry.registerPath({
     },
   },
 });
+
+registry.registerPath({
+  method: "get",
+  path: "/applications/{applicationId}/state",
+  summary: "Get the application state history",
+  description:
+    "Retrieve the complete state transition history of a specific application, including previous and next states, reasons for state changes, users who performed the transitions, and timestamps. Transitions are returned in chronological order.",
+  tags: ["Applications"],
+  security: [
+    {
+      XSRFToken: [],
+    },
+  ],
+  request: {
+    params: applicationParamsSchema,
+  },
+  responses: {
+    200: {
+      description: "Application state history retrieved successfully",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              status: {
+                type: "string",
+                example: "success",
+              },
+              data: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    transition_id: {
+                      type: "string",
+                      example: "55",
+                    },
+                    application_id: {
+                      type: "string",
+                      example: "18",
+                    },
+                    from_state_id: {
+                      type: "string",
+                      nullable: true,
+                      example: "1",
+                    },
+                    from_state: {
+                      type: "string",
+                      nullable: true,
+                      example: "created",
+                    },
+                    to_state_id: {
+                      type: "string",
+                      nullable: true,
+                      example: "2",
+                    },
+                    to_state: {
+                      type: "string",
+                      nullable: true,
+                      example: "awaiting Learning Agreement approval by referent;",
+                    },
+                    reason: {
+                      type: "string",
+                      nullable: true,
+                      example: "Learning Agreement uploaded",
+                    },
+                    performed_by: {
+                      type: "string",
+                      nullable: true,
+                      example: "30",
+                    },
+                    created_at: {
+                      type: "string",
+                      format: "date-time",
+                      example: "2026-11-24T22:04:46.416Z",
+                    },
+                  },
+                },
+                example: [
+                  {
+                    transition_id: "54",
+                    application_id: "18",
+                    from_state_id: null,
+                    from_state: null,
+                    to_state_id: "1",
+                    to_state: "created",
+                    reason: "Application creation",
+                    performed_by: "30",
+                    created_at: "2026-11-24T22:02:40.997Z",
+                  },
+                  {
+                    transition_id: "55",
+                    application_id: "18",
+                    from_state_id: "1",
+                    from_state: "created",
+                    to_state_id: "2",
+                    to_state: "awaiting Learning Agreement approval by referent;",
+                    reason: "Learning Agreement uploaded",
+                    performed_by: "30",
+                    created_at: "2026-11-24T22:04:46.416Z",
+                  },
+                  {
+                    transition_id: "56",
+                    application_id: "18",
+                    from_state_id: "2",
+                    from_state: "awaiting Learning Agreement approval by referent;",
+                    to_state_id: "8",
+                    to_state: "Rejected by referent",
+                    reason: "The Learning Agreement requires corrections",
+                    performed_by: "22",
+                    created_at: "2026-11-24T23:23:23.899Z",
+                  },
+                  {
+                    transition_id: "57",
+                    application_id: "18",
+                    from_state_id: "8",
+                    from_state: "Rejected by referent",
+                    to_state_id: "2",
+                    to_state: "awaiting Learning Agreement approval by referent;",
+                    reason: "Application updated to version 1",
+                    performed_by: "30",
+                    created_at: "2026-11-25T00:01:30.679Z",
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    },
+    400: {
+      description: "error - Invalid application ID.",
+    },
+    401: {
+      description: "error - User not authenticated.",
+    },
+    403: {
+      description: "error - Access denied (Unauthorized role or insufficient permissions).",
+    },
+    404: {
+      description: "error - Application not found.",
+    },
+  },
+});
